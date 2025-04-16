@@ -150,6 +150,12 @@ map<string, string> CVFPCPlugin::validizeSid(CFlightPlan flightPlan) {
 		return returnValid;
 	}
 
+	if (sid == "DIFT") {
+		returnValid["SEARCH"] = "DIFT Set, not checking the flightplan!";
+		returnValid["STATUS"] = "Passed";
+		return returnValid;
+	}
+
 	string first_wp = sid.substr(0, sid.find_first_of("0123456789"));
 	if (0 != first_wp.length())
 		boost::to_upper(first_wp);
@@ -190,7 +196,7 @@ map<string, string> CVFPCPlugin::validizeSid(CFlightPlan flightPlan) {
 	// If the route contains only one waypoint, it's probably a route that goes within the EHAA FIR.
 	// Therefore the SID is probably OK to verify.
 	if (route.size() != 1 && (first_airway.empty() || first_pt.empty())) {
-		returnValid["SEARCH"] = "Could not determine routing to check!\nDEBUG LOG! >> First Airway: " + first_airway + ", First Pt: " + first_pt + ", ROUTE LEN: " + std::to_string(route.size());
+		returnValid["SEARCH"] = "Could not determine routing to check! DEBUG LOG! >> First Airway: " + first_airway + ", First Pt: " + first_pt + ", First waypoint: " + first_wp + ", ROUTE LEN: " + std::to_string(route.size());
 		returnValid["STATUS"] = "Failed";
 		return returnValid;
 	}
@@ -224,6 +230,15 @@ map<string, string> CVFPCPlugin::validizeSid(CFlightPlan flightPlan) {
 		returnValid["CS"] = flightPlan.GetCallsign();
 		bool passed[checksAmount]{ false };
 		valid = false;
+
+		bool airway_rqrd = true;
+
+		if (conditions[i]["airway_required"].Size()) {
+			string required_airway = conditions[i]["airway_required"].GetString();
+			if (required_airway == "NO" || required_airway == "FALSE") {
+				airway_rqrd = false;
+			}
+		}
 
 		// Skip SID if the check is suffix-related
 		if (conditions[i]["suffix"].IsString() && conditions[i]["suffix"].GetString() != sid_suffix) {
@@ -286,11 +301,17 @@ map<string, string> CVFPCPlugin::validizeSid(CFlightPlan flightPlan) {
 		bool found_airway{
 		std::regex_match(first_airway, reg) };
 
-		if (first_airway == "DCT" || !found_airway) {
+		if (airway_rqrd && (first_airway == "DCT" || !found_airway)) {
 			returnValid["SID_DCT"] = "Failed: Flightplan contains a DCT after the SID!";
 		}
 		else {
-			returnValid["SID_DCT"] = "No DCT after SID";
+			if (!airway_rqrd) {
+				returnValid["SID_DCT"] = "No airway required after SID";
+			}
+			else
+			{
+				returnValid["SID_DCT"] = "No DCT after SID";
+			}
 			passed[8] = true;
 		}
 
