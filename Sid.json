@@ -1086,7 +1086,8 @@
             "destinations": [
               "EBBR",
               "EBAW"
-            ]
+            ],
+            "airway_required": "NO"
           }
         ],
         "INKET": [
@@ -1095,7 +1096,8 @@
             "max_fl": 75,
             "destinations": [
               "EHRD"
-            ]
+            ],
+            "airway_required": "NO"
           }
         ],
         "LNO": [
@@ -1128,7 +1130,8 @@
             ],
             "destinations": [
               "EHBK"
-            ]
+            ],
+            "airway_required": "NO"
           }
         ],
         "PESER": [
@@ -1139,7 +1142,8 @@
             ],
             "destinations": [
               "EHAM"
-            ]
+            ],
+            "airway_required": "NO"
           }
         ],
         "TENLI": [
@@ -1149,7 +1153,8 @@
             "destinations": [
               "EHGG",
               "EHLE"
-            ]
+            ],
+            "airway_required": "NO"
           }
         ],
         "TULIP": [
@@ -1160,12 +1165,14 @@
             ]
           }
         ],
-        "VELNI": [
+        "VELNI": 
+        [
           {
             "direction": "ODD",
             "forbidden_fls": [
               "250"
-            ]
+            ],
+            "airway_required": "NO"
           }
         ],
         "WOODY": [
@@ -1391,7 +1398,8 @@
             "direction": "ODD",
             "forbidden_fls": [
               "250"
-            ]
+            ],
+            "airway_required": "NO"
           }
         ],
         "ENKOS": [
@@ -1402,7 +1410,8 @@
             ],
             "destinations": [
               "EHRD"
-            ]
+            ],
+            "airway_required": "NO"
           }
         ],
         "NAPRO": [
@@ -1422,7 +1431,8 @@
             "min_fl": 70,
             "destinations": [
               "EHAM"
-            ]
+            ],
+            "airway_required": "NO"
           }
         ],
         "OLWOF": [
@@ -1430,7 +1440,8 @@
             "direction": "ODD",
             "forbidden_fls": [
               "250"
-            ]
+            ],
+            "airway_required": "NO"
           }
         ],
         "PAM": [
@@ -1449,7 +1460,8 @@
             ],
             "destinations": [
               "EHLE"
-            ]
+            ],
+            "airway_required": "NO"
           }
         ],
         "RUMER": [
@@ -1460,7 +1472,8 @@
               "EHEH",
               "EHBD",
               "EHBK"
-            ]
+            ],
+            "airway_required": "NO"
           }
         ],
         "SONEB": [
@@ -1519,7 +1532,8 @@
             "direction": "ODD",
             "forbidden_fls": [
               "250"
-            ]
+            ],
+            "airway_required": "NO"
           }
         ]
       }
@@ -1532,7 +1546,8 @@
             "direction": "ODD",
             "forbidden_fls": [
               "250"
-            ]
+            ],
+            "airway_required": "NO"
           }
         ],
         "LNO": [
@@ -1578,7 +1593,8 @@
             "direction": "EVEN",
             "forbidden_fls": [
               "250"
-            ]
+            ],
+            "airway_required": "NO"
           }
         ],
         "PESER": [
@@ -1589,7 +1605,8 @@
             ],
             "destinations": [
               "EHAM"
-            ]
+            ],
+            "airway_required": "NO"
           }
         ],
         "TENLI": [
@@ -1601,7 +1618,8 @@
             "destinations": [
               "EHGG",
               "EHLE"
-            ]
+            ],
+            "airway_required": "NO"
           }
         ]
       }
