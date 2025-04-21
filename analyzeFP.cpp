@@ -414,9 +414,18 @@ map<string, string> CVFPCPlugin::validizeSid(CFlightPlan flightPlan) {
 
 		// Flight level (forbidden)
 		// Does Condition contain our first airway if it's limited
+		bool has_fl250 = false;
+		if (to_string(RFL / 100) == "250") {
+			has_fl250 = true;
+		}
+
 		if (conditions[i]["forbidden_fls"].IsArray() && conditions[i]["forbidden_fls"].Size()) {
 			if (routeContains(to_string(RFL / 100), conditions[i]["forbidden_fls"])) {
 				returnValid["FORBIDDEN_FL"] = "Failed forbidden FLs. Forbidden FL: " + to_string(RFL / 100);
+			}
+			else if(has_fl250){
+				returnValid["FORBIDDEN_FL"] = "Failed forbidden FLs. Forbidden FL: 250";
+
 			}
 			else {
 				returnValid["FORBIDDEN_FL"] = "Passed forbidden FLs";
@@ -424,8 +433,14 @@ map<string, string> CVFPCPlugin::validizeSid(CFlightPlan flightPlan) {
 			}
 		}
 		else {
-			returnValid["FORBIDDEN_FL"] = "No forbidden FL";
-			passed[6] = true;
+			if (has_fl250) {
+				returnValid["FORBIDDEN_FL"] = "Failed forbidden FLs. Forbidden FL: 250";
+			}
+			else
+			{
+				returnValid["FORBIDDEN_FL"] = "No forbidden FL";
+				passed[6] = true;
+			}
 		}
 
 		// Special navigation requirements needed
