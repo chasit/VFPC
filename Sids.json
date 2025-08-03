@@ -417,7 +417,7 @@
     "restrictions": [
         {
             "id": "ALL",
-            "From": [
+            "from": [
                 "EHAM",
                 "EHBK",
                 "EHEH",
@@ -433,7 +433,7 @@
         },
         {
             "id": "ED4223",
-            "From": [
+            "from": [
                 "EHAM"
             ],
             "routes": [
@@ -448,7 +448,7 @@
         },
         {
             "id": "EBYX4002",
-            "From": [
+            "from": [
                 "EHAM"
             ],
             "routes": [

@@ -1,50 +1,127 @@
 # Difference from original
 
-There is one minor change compared to the original VFPC plugin, this change is the addition of checking whether the first airway present in the Flightplan is a DCT. If this is the case, VFPC will show an error.  
-The expanded output (in chat) will show:
+The entire plugin has been rewritten to allow for a broader customisation and a much easier JSON format.  
+Each SID now has 4 options it can have, of which one must be present (`"direction"`), as this indicates whether a given flight requires an even or odd level.
 
-![DCT After the SID](https://i.imgur.com/SG1gbVC.png)
+In addition it now supports full RAD implementation, as can be seen in the [Sids.json file](./Sids.json).
 
-Also the sids have been updated to the EHAA values, credit to [MikaNL](https://github.com/MikaNL/VFPC) for adding these.
+The plugin is customisable via the various options it can have in the JSON structure.
 
 # VFPC Plugin
- 
-VFPC (Vatsim Flugplan-RFL checker) is a plugin for EuroScope that checks defined departure restrictions on filed flight plans. It adds a Tag Item type for the Departure List, which displays the result of the check.
 
-![Departure List](https://i.imgur.com/wJRsdJq.png)
+The VFPC or VATSIM Flight plan Checker is a plugin for Euroscope that checks whether a given flight plan is filed correctly according to several rules. If all the rules pass a green `OK!` will show in the departure list, if any issues are found a red indicated message will appear.
+
+![Departure List](./img/image.png)
+
+The SIDs that are available in the [Sids.json file](./Sids.json) are all valid EHAA SIDs, the SID restrictions are updated per DutchVACC requirements with restrictions on which SID can go where and the ceiling of the given SID.
+
+Whenever errors are found, an explanation can be requested and will appear in a new chat window.
+![Routing Errors](./img/image-1.png)
 
 ## Features:
-- Tag item VFPC: Shows check-result as green 'OK!' or red 'FPL!' ('SID' = No valid SID found, 'ENG' = Failed Engine type restriction, 'E/O' = Failed even/odd Flightlevel, 'MIN' = Failed minimum Flight Level, 'MAX' = Failed maximum Flightlevel)
+- Tag item VFPC: Shows check-result as green 'OK!' or red values ('SID' = A SID error, 'RTE' = A routing error, 'FL' = A flight level error)
 - Tag function 'Check FP': Explains the check-result in chat output
-- Chat command '.vfpc reload': reload the Sid.json config
+- Chat command '.vfpc reload': reload the Sids.json config
 - Chat command '.vfpc check': checks currently selected AC and outputs result
-- Restrictions customizable in Sid.json config
-- Checks Even/Odd Flightlevel restriction
-- Checks Minimum & Maximum Flightlevel restriction
-- Check condition 'route must contain airway' available
-- Check condition 'destination must be' available
-- Check condition 'aircraft type must be' available (? - unknown, P - piston, T - turboprop/turboshaft, J - jet, E - electric)
+- Restrictions customizable in Sids.json config
+- Checks Even/Odd Flight level restriction (based on SID)
+- Checks Maximum Flight level restriction (based on RAD or SID)
+- Checks whether an airway is present after the final SID fix (meaning no DCT allowed, customisable per SID)
+- Checks if a given SID may only be applied for given destinations 
 
 ## How to use:
-- Load up the plugin
-- Add Tag Item type & function to Departure List
-- Extend the 'Sid.json' config file
-![Departure List2](https://i.imgur.com/kQrtVfN.png)
+- Copy both the VFPC.dll and Sids.json file into a given (it must be in the same) directory
+- Load up the Plugin via Euroscope
+- Add Tag Item type & function to Departure List ![alt text](./img/add_to_dep_list.png)
+- You're all setup!
 
 
 ### How to define configurations
-The 'Sid.json'-File is using the JSON file format. Each airport is an object containing the "icao" and a sub-object "sids", which contains all definitions & restrictions. Inside this sub-object are all available SIDs defined by the first route waypoint (i.e. "AMLUH" for AMLUH1B, AMLUH9C, AMLUH9D & AMLUH9G).
-Each SID can contain multiple objects with defined options based on restrictions. The plugin will stop at the first matching one from top-to-bottom, so the most restrictive objects should always be on top.
 
-Available restrictions:
-- "destinations" - Array of strings. The object only applies to FPL with one of the given destination ICAOs. Partials are possible, ex. "ED"
-- "engine" - Either string or array of strings. The object only applies to AC with one of the given Engine Types. Options are "P" (piston), "T" (turboprop/turboshaft), "J" (jet) and "E" (electric), as defined by Euroscope
-- "navigation" - A string which contains the equipment codes which defines all allowed capabilities for the SID
-- "airways" - Array of strings. The object only applies to FPL if route contains any of the given airways
+The Sids.json file can be adjusted to your needs. It supports a SID mapping, where SID names don't match the initial fix, SIDs with different restraints per SID and RAD configurations.
 
-Available options:
-- "direction" - String. The FPL must have this E/O option as final flightlevel. Available: "EVEN/ODD/ANY)
-- "min_fl" - Integer. The FPL must have this flightlevel as minimum
-- "max_fl" - Integer. The FPL must have this flightlevel as maximum
+A minimal example of a valid configuration for only a SID:
+```json
 
-Examples can be found in the given Sid.json file.
+{
+    "sid_details": [
+        {
+            "icao": "XXXX",
+            "sids": {
+                "SID_NAME": [
+                    {
+                        "direction": "EVEN / ODD",
+                    }
+                ],
+            }
+        }
+    ]
+}
+```
+
+Optionally for the SID the following options are considered:
+```json
+    "destinations": [
+        "XXX"
+    ],
+    "airway_required": false,
+    "max_fl": 75
+```
+
+A full minimal example including RAD restrictions:
+
+
+```json
+
+{
+    "sid_details": [
+        {
+            "icao": "XXXX",
+            "sids": {
+                "SID_NAME": [
+                    {
+                        "direction": "EVEN / ODD",
+                    }
+                ],
+            }
+        }
+    ],
+    "restrictions": [
+        {
+            "id": "ED4223",
+            "from": [
+                "EHAM"
+            ],
+            "routes": [
+                {
+                    "destinations": [
+                        "EDDM "
+                    ],
+                    "fl_capping": 355
+                }
+            ],
+            "applicability": "AIRAC APR – FIRST AIRAC OCT"
+        }
+    ]
+}
+```
+
+As can be seen the restrictions all allow an ID to be added, this ID is not used by the Plugin, but added for ease of maintenance. 
+
+
+#### Available parameters for SIDs
+- direction: **Required**, can be either `EVEN` or `ODD`
+- destinations: This is a list of ICAO codes
+- airway_required: This specifies whether an airway is required after the initial SID fix (if unset defaults to true)
+- max_fl: This specifies a maximum flight level for the SID
+
+#### Available parameters for the restrictions
+- id: **Required**, not used by the plugin, doesn't have to be unique
+- from: **Required**, a list to of ICAO codes to which the restriction applies (origin)
+- routes: **Required**, a list of routes which are part of the same restriction
+  - destinations: **Required**, a list of destinations to which the restriction applies
+  - fl_capping: **Required**, the maximum flight level for the restriction
+- applicability: The applicability of the restriction [WIP, currently unused]
+
+
+For more examples refer to the [Sids.json file](./Sids.json).
