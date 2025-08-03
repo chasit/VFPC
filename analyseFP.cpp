@@ -92,7 +92,7 @@ void VFPCPlugin::sendMessage(string message)
 }
 
 // Logs a message to a file in the same folder as the DLL
-void VFPCPlugin::logToFile(const std::string &message)
+void VFPCPlugin::logToFile(const std::string& message)
 {
 	// Get the DLL directory from DllPathFile (already set at startup)
 	std::string logPath = DllPathFile;
@@ -135,11 +135,11 @@ void VFPCPlugin::getSidData()
 }
 
 void VFPCPlugin::validate_sid(
-	CFlightPlan flightPlan, ValidationContext &ctx, map<string, string> &returnValid)
+	CFlightPlan flightPlan, ValidationContext& ctx, map<string, string>& returnValid)
 {
 	returnValid["CS"] = flightPlan.GetCallsign();
 	returnValid["STATUS"] = "Passed";
-	bool valid{false};
+	bool valid{ false };
 
 	string origin = flightPlan.GetFlightPlanData().GetOrigin();
 	boost::to_upper(origin);
@@ -210,10 +210,10 @@ void VFPCPlugin::validate_sid(
 	}
 
 	// Locate SID details for the given ICAO
-	const auto &sid_details = data["sid_details"];
+	const auto& sid_details = data["sid_details"];
 	const auto sid_entry = std::find_if(
 		sid_details.begin(), sid_details.end(),
-		[&](const json &entry)
+		[&](const json& entry)
 		{
 			return entry.value("icao", "") == origin;
 		});
@@ -226,7 +226,7 @@ void VFPCPlugin::validate_sid(
 		return;
 	}
 
-	const auto &sids = sid_entry->at("sids");
+	const auto& sids = sid_entry->at("sids");
 	if (!sids.contains(resolved_sid))
 	{
 		returnValid["SEARCH"] = "Invalid SID, SID " + first_wp + " not listed for " + origin;
@@ -237,7 +237,7 @@ void VFPCPlugin::validate_sid(
 
 	returnValid["SID"] = resolved_sid;
 
-	const auto &sid_def = sids[resolved_sid][0];
+	const auto& sid_def = sids[resolved_sid][0];
 
 	// Check direction (ODD/EVEN)
 	if (sid_def.contains("direction"))
@@ -258,14 +258,14 @@ void VFPCPlugin::validate_sid(
 
 	if (sid_def.contains("destinations"))
 	{
-		const auto &destinations = sid_def["destinations"];
+		const auto& destinations = sid_def["destinations"];
 		if (destinations.is_array() && !destinations.empty())
 		{
 			bool destination_found = std::any_of(destinations.begin(), destinations.end(),
-												 [&destination](const json &dest)
-												 {
-													 return dest.get<std::string>() == destination;
-												 });
+				[&destination](const json& dest)
+				{
+					return dest.get<std::string>() == destination;
+				});
 
 			if (!destination_found)
 			{
@@ -291,7 +291,7 @@ void VFPCPlugin::validate_sid(
 		string first_token = route_tokens[1];
 		logToFile("Debug: " + first_token);
 		bool looks_like_airway = std::any_of(first_token.begin(), first_token.end(), ::isalpha) &&
-								 std::any_of(first_token.begin(), first_token.end(), ::isdigit);
+			std::any_of(first_token.begin(), first_token.end(), ::isdigit);
 
 		if (!looks_like_airway)
 		{
@@ -314,7 +314,7 @@ void VFPCPlugin::validate_sid(
 }
 
 void VFPCPlugin::search_restrictions(
-	CFlightPlan flightPlan, ValidationContext &ctx, map<string, string> &returnValid)
+	CFlightPlan flightPlan, ValidationContext& ctx, map<string, string>& returnValid)
 {
 	auto data = sidData;
 	if (!data.contains("restrictions") || !data["restrictions"].is_array())
@@ -337,13 +337,13 @@ void VFPCPlugin::search_restrictions(
 
 	std::optional<int> min_capping;
 
-	for (const auto &restriction : data["restrictions"])
+	for (const auto& restriction : data["restrictions"])
 	{
 		std::string id = restriction.value("id", "");
 		// "ALL" restriction check
 		if (id == "ALL")
 		{
-			const auto &from_list = restriction["From"];
+			const auto& from_list = restriction["From"];
 			if (std::find(from_list.begin(), from_list.end(), origin) != from_list.end())
 			{
 				if (restriction.contains("forbidden_fls"))
@@ -367,7 +367,7 @@ void VFPCPlugin::search_restrictions(
 		bool matches_from = false;
 		if (restriction.contains("From"))
 		{
-			for (const auto &from : restriction["From"])
+			for (const auto& from : restriction["From"])
 			{
 				if (from == origin)
 				{
@@ -378,7 +378,7 @@ void VFPCPlugin::search_restrictions(
 		}
 		else if (restriction.contains("from"))
 		{
-			for (const auto &from : restriction["from"])
+			for (const auto& from : restriction["from"])
 			{
 				if (from == origin)
 				{
@@ -392,12 +392,12 @@ void VFPCPlugin::search_restrictions(
 		if (!restriction.contains("routes") || !restriction["routes"].is_array())
 			continue;
 
-		for (const auto &route : restriction["routes"])
+		for (const auto& route : restriction["routes"])
 		{
 			if (!route.contains("destinations"))
 				continue;
 			bool dest_match = false;
-			for (const auto &dest : route["destinations"])
+			for (const auto& dest : route["destinations"])
 			{
 				if (dest == destination)
 				{
@@ -429,7 +429,7 @@ void VFPCPlugin::search_restrictions(
 			{
 				std::string via_str = condition.substr(4);
 				auto via_points = split(via_str, ',');
-				for (const auto &p : via_points)
+				for (const auto& p : via_points)
 				{
 					if (std::find(route_tokens.begin(), route_tokens.end(), p) != route_tokens.end())
 					{
@@ -441,7 +441,7 @@ void VFPCPlugin::search_restrictions(
 				if (!condition_matched)
 				{
 					// Attempt fallback to NOT VIA
-					for (const auto &fallback : restriction["routes"])
+					for (const auto& fallback : restriction["routes"])
 					{
 						std::string fb_cond = fallback.value("condition", "");
 						if (fb_cond.rfind("NOT VIA ", 0) == 0)
@@ -449,7 +449,7 @@ void VFPCPlugin::search_restrictions(
 							std::string not_via_str = fb_cond.substr(8);
 							auto not_via_points = split(not_via_str, ',');
 							bool found = false;
-							for (const auto &np : not_via_points)
+							for (const auto& np : not_via_points)
 							{
 								if (std::find(route_tokens.begin(), route_tokens.end(), np) != route_tokens.end())
 								{
@@ -480,7 +480,7 @@ void VFPCPlugin::search_restrictions(
 				std::string not_via_str = condition.substr(8);
 				auto not_via_points = split(not_via_str, ',');
 				bool found = false;
-				for (const auto &p : not_via_points)
+				for (const auto& p : not_via_points)
 				{
 					if (std::find(route_tokens.begin(), route_tokens.end(), p) != route_tokens.end())
 					{
@@ -518,7 +518,7 @@ void VFPCPlugin::search_restrictions(
 }
 
 // Method is called when the function (tag) is present
-void VFPCPlugin::OnFunctionCall(int FunctionId, const char *ItemString, POINT Pt, RECT Area)
+void VFPCPlugin::OnFunctionCall(int FunctionId, const char* ItemString, POINT Pt, RECT Area)
 {
 	CFlightPlan fp = FlightPlanSelectASEL();
 
@@ -546,7 +546,7 @@ void VFPCPlugin::OnFunctionCall(int FunctionId, const char *ItemString, POINT Pt
 }
 
 // Get FlightPlan, and therefore get the first waypoint of the flightplan (ie. SID). Check if the (RFL/1000) corresponds to the SID Min FL and report output "OK" or "FPL"
-void VFPCPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarget, int ItemCode, int TagData, char sItemString[16], int *pColorCode, COLORREF *pRGB, double *pFontSize)
+void VFPCPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarget, int ItemCode, int TagData, char sItemString[16], int* pColorCode, COLORREF* pRGB, double* pFontSize)
 {
 	*pColorCode = TAG_COLOR_RGB_DEFINED;
 
@@ -617,7 +617,7 @@ void VFPCPlugin::OnFlightPlanDisconnect(CFlightPlan FlightPlan)
 }
 
 // Compiled commands, to be used in the command line window
-bool VFPCPlugin::OnCompileCommand(const char *sCommandLine)
+bool VFPCPlugin::OnCompileCommand(const char* sCommandLine)
 {
 	if (startsWith(".vfpcV2 reload", sCommandLine))
 	{
@@ -642,7 +642,7 @@ bool VFPCPlugin::OnCompileCommand(const char *sCommandLine)
 	if (startsWith(".vfpcV2 load", sCommandLine))
 	{
 		locale loc;
-		string buffer{sCommandLine};
+		string buffer{ sCommandLine };
 		buffer.erase(0, 11);
 		getSidData();
 		return true;
@@ -674,7 +674,7 @@ void VFPCPlugin::checkFPDetail()
 		buffer += messageBuffer["STATUS"] + " SID " + messageBuffer["SID"] + ": ";
 
 		int iterator_count = 1;
-		for (auto const &[key, val] : messageBuffer)
+		for (auto const& [key, val] : messageBuffer)
 		{
 			if (key == "CS" || key == "STATUS" || key == "SID" || key.rfind("DEBUG", 0) == 0)
 				continue;
@@ -707,12 +707,12 @@ void VFPCPlugin::checkFPDetail()
 	}
 }
 
-string VFPCPlugin::getFails(map<string, string> messageBuffer, ValidationContext &ctx)
+string VFPCPlugin::getFails(map<string, string> messageBuffer, ValidationContext& ctx)
 {
 	vector<string> fails;
 
 	auto messages = ctx.failureMessages();
-	for (const auto &message : messages)
+	for (const auto& message : messages)
 	{
 		fails.push_back(message);
 	}
@@ -740,7 +740,7 @@ void VFPCPlugin::OnTimer(int Counter)
 	// Loading proper Sids, when logged in
 	if (GetConnectionType() != CONNECTION_TYPE_NO && !initialSidLoad)
 	{
-		string callsign{ControllerMyself().GetCallsign()};
+		string callsign{ ControllerMyself().GetCallsign() };
 		sendMessage("Loading all SIDs...");
 		getSidData();
 		initialSidLoad = true;

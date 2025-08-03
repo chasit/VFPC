@@ -5,9 +5,9 @@
 #include "EuroScopePlugIn.h"
 #include "analyseFP.hpp"
 
-VFPCPlugin *gpMyPlugin = NULL;
+VFPCPlugin* gpMyPlugin = NULL;
 
-void __declspec(dllexport) EuroScopePlugInInit(EuroScopePlugIn::CPlugIn **ppPlugInInstance)
+void __declspec(dllexport) EuroScopePlugInInit(EuroScopePlugIn::CPlugIn** ppPlugInInstance)
 {
 	// create the instance
 	*ppPlugInInstance = gpMyPlugin = new VFPCPlugin();

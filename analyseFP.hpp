@@ -39,23 +39,23 @@ public:
 
 	virtual void getSidData();
 
-	virtual void validate_sid(CFlightPlan flightPlan, ValidationContext &ctx, map<string, string>& returnValid);
+	virtual void validate_sid(CFlightPlan flightPlan, ValidationContext& ctx, map<string, string>& returnValid);
 
 	virtual void search_restrictions(
-		CFlightPlan flightPlan, ValidationContext &ctx, map<string, string>& returnValid);
+		CFlightPlan flightPlan, ValidationContext& ctx, map<string, string>& returnValid);
 
-	virtual void OnFunctionCall(int FunctionId, const char *ItemString, POINT Pt, RECT Area);
+	virtual void OnFunctionCall(int FunctionId, const char* ItemString, POINT Pt, RECT Area);
 
 	virtual void OnGetTagItem(CFlightPlan FlightPlan,
-							  CRadarTarget RadarTarget,
-							  int ItemCode,
-							  int TagData,
-							  char sItemString[16],
-							  int *pColorCode,
-							  COLORREF *pRGB,
-							  double *pFontSize);
+		CRadarTarget RadarTarget,
+		int ItemCode,
+		int TagData,
+		char sItemString[16],
+		int* pColorCode,
+		COLORREF* pRGB,
+		double* pFontSize);
 
-	std::vector<std::string> split(const std::string &s, char delimiter)
+	std::vector<std::string> split(const std::string& s, char delimiter)
 	{
 		std::vector<std::string> tokens;
 		std::string token;
@@ -69,11 +69,11 @@ public:
 		return tokens;
 	}
 
-	virtual void logToFile(const std::string &message);
+	virtual void logToFile(const std::string& message);
 
 	virtual void OnFlightPlanDisconnect(CFlightPlan FlightPlan);
 
-	virtual bool OnCompileCommand(const char *sCommandLine);
+	virtual bool OnCompileCommand(const char* sCommandLine);
 
 	virtual void debugMessage(string message);
 
@@ -83,7 +83,7 @@ public:
 
 	virtual void checkFPDetail();
 
-	virtual string getFails(map<string, string> messageBuffer, ValidationContext &ctx);
+	virtual string getFails(map<string, string> messageBuffer, ValidationContext& ctx);
 
 	virtual void OnTimer(int Count);
 

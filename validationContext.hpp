@@ -7,10 +7,10 @@
 
 enum class ValidationCheck
 {
-    SID_ERROR,
-    ROUTE_ERROR,
-    LEVEL_ERROR,
-    Count
+	SID_ERROR,
+	ROUTE_ERROR,
+	LEVEL_ERROR,
+	Count
 };
 
 constexpr size_t CHECK_COUNT = static_cast<size_t>(ValidationCheck::Count);
@@ -19,13 +19,13 @@ extern const std::unordered_map<ValidationCheck, std::string> failure_messages;
 
 struct ValidationContext
 {
-    std::bitset<CHECK_COUNT> results;
-    std::vector<ValidationCheck> failed;
+	std::bitset<CHECK_COUNT> results;
+	std::vector<ValidationCheck> failed;
 
-    ValidationContext();
+	ValidationContext();
 
-    void fail(ValidationCheck check);
-    void pass(ValidationCheck check);
-    bool isValid() const;
-    std::vector<std::string> failureMessages() const;
+	void fail(ValidationCheck check);
+	void pass(ValidationCheck check);
+	bool isValid() const;
+	std::vector<std::string> failureMessages() const;
 };
