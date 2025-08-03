@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 #include "EuroScopePlugIn.h"
-#include "analyzeFP.hpp"
+#include "analyseFP.hpp"
 
 VFPCPlugin *gpMyPlugin = NULL;
 

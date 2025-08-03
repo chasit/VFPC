@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="analyzeFP.hpp" />
+    <ClInclude Include="analyseFP.hpp" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Constant.hpp" />
     <ClInclude Include="stdafx.h" />
@@ -27,7 +27,7 @@
     <ClInclude Include="validationContext.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="analyzeFP.cpp" />
+    <ClCompile Include="analyseFP.cpp" />
     <ClCompile Include="validationContext.cpp" />
     <ClCompile Include="VFPC.cpp" />
     <ClCompile Include="stdafx.cpp">

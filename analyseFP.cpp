@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "analyzeFP.hpp"
+#include "analyseFP.hpp"
 
 extern "C" IMAGE_DOS_HEADER __ImageBase;
 
@@ -269,7 +269,7 @@ void VFPCPlugin::validate_sid(
 
 			if (!destination_found)
 			{
-				returnValid["DESTINATION"] = "Failed, SID not valid for destination " + destination;
+				returnValid["DESTINATION"] = "Failed SID not valid for destination " + destination;
 				ctx.fail(ValidationCheck::SID_ERROR);
 			}
 			else
