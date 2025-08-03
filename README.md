@@ -3,17 +3,17 @@
 The entire plugin has been rewritten to allow for a broader customisation and a much easier JSON format.  
 Each SID now has 4 options it can have, of which one must be present (`"direction"`), as this indicates whether a given flight requires an even or odd level.
 
-In addition it now supports full RAD implementation, as can be seen in the [Sids.json file](./Sids.json).
+In addition it now supports full RAD implementation, as can be seen in the [Sids.json file](./json/Sids.json).
 
 The plugin is customisable via the various options it can have in the JSON structure.
 
 # VFPC Plugin
 
-The VFPC or VATSIM Flight plan Checker is a plugin for Euroscope that checks whether a given flight plan is filed correctly according to several rules. If all the rules pass a green `OK!` will show in the departure list, if any issues are found a red indicated message will appear.
+The VFPC or VATSIM Flight Plan Checker is a plugin for Euroscope that checks whether a given flight plan is filed correctly according to several rules. If all the rules pass a green `OK!` will show in the departure list, if any issues are found a red indicated message will appear.
 
 ![Departure List](./img/image.png)
 
-The SIDs that are available in the [Sids.json file](./Sids.json) are all valid EHAA SIDs, the SID restrictions are updated per DutchVACC requirements with restrictions on which SID can go where and the ceiling of the given SID.
+The SIDs that are available in the [Sids.json file](./json/Sids.json) are all valid EHAA SIDs, the SID restrictions are updated per DutchVACC requirements with restrictions on which SID can go where and the ceiling of the given SID.
 
 Whenever errors are found, an explanation can be requested and will appear in a new chat window.
 ![Routing Errors](./img/image-1.png)
@@ -124,4 +124,4 @@ As can be seen the restrictions all allow an ID to be added, this ID is not used
 - applicability: The applicability of the restriction [WIP, currently unused]
 
 
-For more examples refer to the [Sids.json file](./Sids.json).
+For more examples refer to the [Sids.json file](./json/Sids.json).
