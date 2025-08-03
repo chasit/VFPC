@@ -35,7 +35,7 @@ VFPCPlugin::VFPCPlugin(void) : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, MY_P
 	GetModuleFileNameA(HINSTANCE(&__ImageBase), DllPathFile, sizeof(DllPathFile));
 	sidJsonFileLocation = DllPathFile;
 	sidJsonFileLocation.resize(sidJsonFileLocation.size() - strlen("VFPC.dll"));
-	sidJsonFileLocation += "Sid_new_layout copy.json";
+	sidJsonFileLocation += "Sids.json";
 
 	debugMode = false;
 	initialSidLoad = false;
