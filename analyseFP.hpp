@@ -20,7 +20,7 @@
 #include "validationContext.hpp"
 #include <cstdio>
 
-#define MY_PLUGIN_NAME "VFPC V2"
+#define MY_PLUGIN_NAME "VFPC"
 #define MY_PLUGIN_VERSION "4.0.0"
 #define MY_PLUGIN_DEVELOPER "Chasit"
 #define MY_PLUGIN_COPYRIGHT "GPL v3"
@@ -39,9 +39,9 @@ public:
 
 	virtual void getSidData();
 
-	virtual void validate_sid(CFlightPlan flightPlan, ValidationContext& ctx, map<string, string>& returnValid);
+	virtual void validateSid(CFlightPlan flightPlan, ValidationContext& ctx, map<string, string>& returnValid);
 
-	virtual void search_restrictions(
+	virtual void searchRestrictions(
 		CFlightPlan flightPlan, ValidationContext& ctx, map<string, string>& returnValid);
 
 	virtual void OnFunctionCall(int FunctionId, const char* ItemString, POINT Pt, RECT Area);

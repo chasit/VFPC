@@ -26,15 +26,15 @@ VFPCPlugin::VFPCPlugin(void) : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, MY_P
 	sendMessage(loadingMessage);
 
 	// Register Tag Item "VFPC"
-	RegisterTagItemType("VFPC V2", TAG_ITEM_FPCHECK);
-	RegisterTagItemType("VFPC (if failed) V2", TAG_ITEM_FPCHECK_IF_FAILED);
-	RegisterTagItemType("VFPC (if failed, static) V2", TAG_ITEM_FPCHECK_IF_FAILED_STATIC);
+	RegisterTagItemType("VFPC", TAG_ITEM_FPCHECK);
+	RegisterTagItemType("VFPC (if failed)", TAG_ITEM_FPCHECK_IF_FAILED);
+	RegisterTagItemType("VFPC (if failed, static)", TAG_ITEM_FPCHECK_IF_FAILED_STATIC);
 	RegisterTagItemFunction("Check FP", TAG_FUNC_CHECKFP_MENU);
 
-	// Get Path of the Sid.txt
+	// Get Path of the Sid.json
 	GetModuleFileNameA(HINSTANCE(&__ImageBase), DllPathFile, sizeof(DllPathFile));
 	sidJsonFileLocation = DllPathFile;
-	sidJsonFileLocation.resize(sidJsonFileLocation.size() - strlen("VFPC V2.dll"));
+	sidJsonFileLocation.resize(sidJsonFileLocation.size() - strlen("VFPC.dll"));
 	sidJsonFileLocation += "Sid_new_layout copy.json";
 
 	debugMode = false;
@@ -58,16 +58,12 @@ VFPCPlugin::~VFPCPlugin()
 {
 }
 
-/*
-	Custom Functions
-*/
-
 void VFPCPlugin::debugMessage(string message)
 {
 	// Display Debug Message if debugMode = true
 	if (debugMode)
 	{
-		DisplayUserMessage("VFPC V2", "Debug", message.c_str(), true, true, true, false, false);
+		DisplayUserMessage("VFPC", "Debug", message.c_str(), true, true, true, false, false);
 		logToFile(message);
 	}
 }
@@ -75,7 +71,7 @@ void VFPCPlugin::debugMessage(string message)
 void VFPCPlugin::sendMessage(string type, string message)
 {
 	// Show a message
-	DisplayUserMessage("VFPC V2", type.c_str(), message.c_str(), true, true, true, true, false);
+	DisplayUserMessage("VFPC", type.c_str(), message.c_str(), true, true, true, true, false);
 	if (debugMode)
 	{
 		logToFile(message);
@@ -84,7 +80,7 @@ void VFPCPlugin::sendMessage(string type, string message)
 
 void VFPCPlugin::sendMessage(string message)
 {
-	DisplayUserMessage("Message", "VFPC V2", message.c_str(), true, true, true, false, false);
+	DisplayUserMessage("Message", "VFPC", message.c_str(), true, true, true, false, false);
 	if (debugMode)
 	{
 		logToFile(message);
@@ -134,7 +130,7 @@ void VFPCPlugin::getSidData()
 	sidData = json::parse(ifs);
 }
 
-void VFPCPlugin::validate_sid(
+void VFPCPlugin::validateSid(
 	CFlightPlan flightPlan, ValidationContext& ctx, map<string, string>& returnValid)
 {
 	returnValid["CS"] = flightPlan.GetCallsign();
@@ -167,7 +163,7 @@ void VFPCPlugin::validate_sid(
 	// Flightplan has SID
 	if (!sid_name.length())
 	{
-		returnValid["SEARCH"] = "Flightplan doesn't have SID set!";
+		returnValid["SEARCH"] = "Flight plan doesn't have SID set!";
 		returnValid["STATUS"] = "Failed";
 		ctx.fail(ValidationCheck::SID_ERROR);
 		return;
@@ -175,7 +171,7 @@ void VFPCPlugin::validate_sid(
 
 	if (sid_name == "DIFT")
 	{
-		returnValid["SEARCH"] = "DIFT Set, not checking the flightplan!";
+		returnValid["SEARCH"] = "DIFT Set, not checking the flight plan!";
 		returnValid["STATUS"] = "Passed";
 		return;
 	}
@@ -193,7 +189,7 @@ void VFPCPlugin::validate_sid(
 	// Did not find a valid SID
 	if (sid_suffix.length() == 0 && "VCT" != first_wp)
 	{
-		returnValid["SEARCH"] = "Flightplan doesn't have SID set!";
+		returnValid["SEARCH"] = "Flight plan doesn't have SID set!";
 		returnValid["STATUS"] = "Failed";
 		ctx.fail(ValidationCheck::SID_ERROR);
 		return;
@@ -313,7 +309,7 @@ void VFPCPlugin::validate_sid(
 	logToFile("Last callsign: " + returnValid["CS"] + ", SID: " + sid_name + ", Origin: " + origin + ", Destination: " + destination + ". Attempting to search restrictions...");
 }
 
-void VFPCPlugin::search_restrictions(
+void VFPCPlugin::searchRestrictions(
 	CFlightPlan flightPlan, ValidationContext& ctx, map<string, string>& returnValid)
 {
 	auto data = sidData;
@@ -545,7 +541,7 @@ void VFPCPlugin::OnFunctionCall(int FunctionId, const char* ItemString, POINT Pt
 	}
 }
 
-// Get FlightPlan, and therefore get the first waypoint of the flightplan (ie. SID). Check if the (RFL/1000) corresponds to the SID Min FL and report output "OK" or "FPL"
+// Get flight plan, and therefore get the first waypoint of the flight plan (ie. SID). Check if the (RFL/1000) corresponds to the SID Min FL and report output "OK" or "FPL"
 void VFPCPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarget, int ItemCode, int TagData, char sItemString[16], int* pColorCode, COLORREF* pRGB, double* pFontSize)
 {
 	*pColorCode = TAG_COLOR_RGB_DEFINED;
@@ -563,8 +559,8 @@ void VFPCPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarget, 
 		{
 			map<string, string> messageBuffer;
 
-			validate_sid(FlightPlan, ctx, messageBuffer);
-			search_restrictions(FlightPlan, ctx, messageBuffer);
+			validateSid(FlightPlan, ctx, messageBuffer);
+			searchRestrictions(FlightPlan, ctx, messageBuffer);
 
 			if (find(AircraftIgnore.begin(), AircraftIgnore.end(), FlightPlan.GetCallsign()) != AircraftIgnore.end())
 			{
@@ -590,8 +586,8 @@ void VFPCPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarget, 
 	{
 		map<string, string> messageBuffer;
 
-		validate_sid(FlightPlan, ctx, messageBuffer);
-		search_restrictions(FlightPlan, ctx, messageBuffer);
+		validateSid(FlightPlan, ctx, messageBuffer);
+		searchRestrictions(FlightPlan, ctx, messageBuffer);
 
 		if (find(AircraftIgnore.begin(), AircraftIgnore.end(), FlightPlan.GetCallsign()) == AircraftIgnore.end() &&
 			messageBuffer["STATUS"] != "Passed")
@@ -619,13 +615,13 @@ void VFPCPlugin::OnFlightPlanDisconnect(CFlightPlan FlightPlan)
 // Compiled commands, to be used in the command line window
 bool VFPCPlugin::OnCompileCommand(const char* sCommandLine)
 {
-	if (startsWith(".vfpcV2 reload", sCommandLine))
+	if (startsWith(".vfpc reload", sCommandLine))
 	{
 		sendMessage("Unloading all loaded SIDs...");
 		initialSidLoad = false;
 		return true;
 	}
-	if (startsWith(".vfpcV2 debug", sCommandLine))
+	if (startsWith(".vfpc debug", sCommandLine))
 	{
 		if (debugMode)
 		{
@@ -639,7 +635,7 @@ bool VFPCPlugin::OnCompileCommand(const char* sCommandLine)
 		}
 		return true;
 	}
-	if (startsWith(".vfpcV2 load", sCommandLine))
+	if (startsWith(".vfpc load", sCommandLine))
 	{
 		locale loc;
 		string buffer{ sCommandLine };
@@ -647,7 +643,7 @@ bool VFPCPlugin::OnCompileCommand(const char* sCommandLine)
 		getSidData();
 		return true;
 	}
-	if (startsWith(".vfpcV2 check", sCommandLine))
+	if (startsWith(".vfpc check", sCommandLine))
 	{
 		checkFPDetail();
 		return true;
@@ -661,8 +657,8 @@ void VFPCPlugin::checkFPDetail()
 	ValidationContext ctx;
 	map<string, string> messageBuffer;
 
-	validate_sid(FlightPlanSelectASEL(), ctx, messageBuffer);
-	search_restrictions(FlightPlanSelectASEL(), ctx, messageBuffer);
+	validateSid(FlightPlanSelectASEL(), ctx, messageBuffer);
+	searchRestrictions(FlightPlanSelectASEL(), ctx, messageBuffer);
 
 	string buffer{};
 	if (!ctx.isValid())
