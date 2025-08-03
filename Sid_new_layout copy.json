@@ -785,6 +785,387 @@
                 }
             ],
             "applicability": "H24"
+        },
+        {
+            "id": "EH4014",
+            "from": [
+                "EHEH",
+                "EHBD",
+                "EHAM",
+                "EHRD",
+                "EHLE"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "EBOS"
+                    ],
+                    "fl_capping": 125
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "EH4016",
+            "from": [
+                "EHRD"
+            ],
+            "routes": [
+                {
+                    "condition": "WITH RFL NOT ABV FL055",
+                    "destinations": [
+                        "EBAW"
+                    ],
+                    "fl_capping": 55
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "EH4017",
+            "from": [
+                "EHRD"
+            ],
+            "routes": [
+                {
+                    "condition": "via COA with-rfl-not-above FL055",
+                    "destinations": [
+                        "EBOS"
+                    ],
+                    "fl_capping": 55
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "LF4137",
+            "from": [
+                "EHAM"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "LFLC"
+                    ],
+                    "fl_capping": 315
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "LF4290",
+            "from": [
+                "EHAM",
+                "EHEH",
+                "EHRD"
+            ],
+            "routes": [
+                {
+                    "condition": "VIA LESDO",
+                    "destinations": [
+                        "LFHJ",
+                        "LFHS",
+                        "LFHV",
+                        "LFHW",
+                        "LFKL",
+                        "LFKY",
+                        "LFLG",
+                        "LFLL",
+                        "LFLM",
+                        "LFLS",
+                        "LFLU",
+                        "LFLY",
+                        "LFMH",
+                        "LFXA"
+                    ],
+                    "fl_capping": 295
+                }
+            ],
+            "applicability": "AIRAC APR – LAST AIRAC OCT, H24"
+        },
+        {
+            "id": "LF4387",
+            "from": [
+                "EHBK"
+            ],
+            "routes": [
+                {
+                    "condition": "VIA LFRRCTA",
+                    "destinations": [
+                        "LFRFRIR"
+                    ],
+                    "fl_capping": 345
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "LF4437",
+            "from": [
+                "EHAM",
+                "EHRD",
+                "EHEH"
+            ],
+            "routes": [
+                {
+                    "condition": "VIA LFBP814",
+                    "destinations": [
+                        "LESO",
+                        "LEBB"
+                    ],
+                    "fl_capping": 355
+                }
+            ],
+            "applicability": "AIRAC APR – FIRST AIRAC OCT 10:20–19:15 (09:20–18:15)"
+        },
+        {
+            "id": "LF4445",
+            "from": [
+                "EHAM"
+            ],
+            "routes": [
+                {
+                    "condition": "VIA LFBP814",
+                    "destinations": [
+                        "LESO",
+                        "LEBB"
+                    ],
+                    "fl_capping": 355
+                }
+            ],
+            "applicability": "AIRAC APR – FIRST AIRAC OCT 06:20–08:45 (05:20–07:45)"
+        },
+        {
+            "id": "LFYX4000",
+            "from": [
+                "EHEH"
+            ],
+            "routes": [
+                {
+                    "condition": "VIA LFEECCTA",
+                    "destinations": [
+                        "LFHJ",
+                        "LFHS",
+                        "LFHV",
+                        "LFHW",
+                        "LFKL"
+                    ],
+                    "fl_capping": 335
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "NM4015",
+            "from": [
+                "EHAM",
+                "EHRD"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "LFP*",
+                        "LFOB",
+                        "LFOK"
+                    ],
+                    "fl_capping": 245
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "YX4007",
+            "from": [
+                "EHAM"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "LFSB",
+                        "LSGG"
+                    ],
+                    "fl_capping": 355
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "YX4034",
+            "from": [
+                "EHEH",
+                "EHRD",
+                "EHBK"
+            ],
+            "routes": [
+                {
+                    "condition": "via EBURUIR",
+                    "destinations": [
+                        "ELLX",
+                        "LFJL",
+                        "LFSF",
+                        "LPST",
+                        "EDDR",
+                        "EDFB",
+                        "EDFE",
+                        "EDFM",
+                        "EDFV",
+                        "EDRY",
+                        "EDRZ",
+                        "ETAR"
+                    ],
+                    "fl_capping": 245
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "YX4039",
+            "from": [
+                "EHBK"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "EGSH",
+                        "EGUL",
+                        "EGUN",
+                        "EGYM",
+                        "EGGW",
+                        "EGKB",
+                        "EGKK",
+                        "EGLC",
+                        "EGMC",
+                        "EGNE",
+                        "EGSC",
+                        "EGSS",
+                        "EGTC",
+                        "EGTO"
+                    ],
+                    "fl_capping": 285
+                }
+            ],
+            "applicability": "06:00–00:30 (05:00–23:59)"
+        },
+        {
+            "id": "YX4044",
+            "from": [
+                "EHBK",
+                "EHEH"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "EDDB"
+                    ],
+                    "fl_capping": 355
+                }
+            ],
+            "applicability": "05:00–21:00 (04:00–20:00)"
+        },
+        {
+            "id": "YX4045",
+            "from": [
+                "EHAM"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "EDDS",
+                        "EDDN"
+                    ],
+                    "fl_capping": 355
+                }
+            ],
+            "applicability": "05:00–21:00 (04:00–20:00)"
+        },
+        {
+            "id": "YX4050",
+            "from": [
+                "EHBK",
+                "EHEH"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "EDDH",
+                        "EDHI",
+                        "EDHL"
+                    ],
+                    "fl_capping": 355
+                }
+            ],
+            "applicability": "05:00–21:00 (04:00–20:00)"
+        },
+        {
+            "id": "YX4054",
+            "from": [
+                "EHBK",
+                "EHWO"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "LFP*",
+                        "LFOB",
+                        "LFOK"
+                    ],
+                    "fl_capping": 245
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "YX4060",
+            "from": [
+                "EHAM",
+                "EHHV",
+                "EHKD",
+                "EHLE",
+                "EHRD",
+                "EHTX"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "EDDB"
+                    ],
+                    "fl_capping": 375
+                }
+            ],
+            "applicability": "05:00–21:00 (04:00–20:00)"
+        },
+        {
+            "id": "YX4062",
+            "from": [
+                "EHAM",
+                "EHHV",
+                "EHKD",
+                "EHLE",
+                "EHRD",
+                "EHTX"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "EDDF",
+                        "EDFE",
+                        "ETOU"
+                    ],
+                    "fl_capping": 355
+                }
+            ],
+            "applicability": "05:00–21:00 (04:00–20:00)"
         }
     ]
 }
