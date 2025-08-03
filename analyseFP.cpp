@@ -306,7 +306,9 @@ void VFPCPlugin::validateSid(
 	}
 
 	// return "valid SID: SID checks passed";
-	logToFile("Last callsign: " + returnValid["CS"] + ", SID: " + sid_name + ", Origin: " + origin + ", Destination: " + destination + ". Attempting to search restrictions...");
+	if (debugMode){
+		logToFile("Last callsign: " + returnValid["CS"] + ", SID: " + sid_name + ", Origin: " + origin + ", Destination: " + destination + ". Attempting to search restrictions...");
+	}
 }
 
 void VFPCPlugin::searchRestrictions(
