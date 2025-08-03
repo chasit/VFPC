@@ -24,12 +24,7 @@
             "sids": {
                 "ANDIK": [
                     {
-                        "direction": "ODD",
-                        "destinations": [
-                            "EHRD"
-                        ],
-                        "airway_required": false,
-                        "max_fl": 75
+                        "direction": "ODD"
                     }
                 ],
                 "ARNEM": [
