@@ -5,7 +5,8 @@
 #include <unordered_map>
 #include <string>
 
-enum class ValidationCheck {
+enum class ValidationCheck
+{
     SID_ERROR,
     ROUTE_ERROR,
     LEVEL_ERROR,
@@ -16,7 +17,8 @@ constexpr size_t CHECK_COUNT = static_cast<size_t>(ValidationCheck::Count);
 
 extern const std::unordered_map<ValidationCheck, std::string> failure_messages;
 
-struct ValidationContext {
+struct ValidationContext
+{
     std::bitset<CHECK_COUNT> results;
     std::vector<ValidationCheck> failed;
 

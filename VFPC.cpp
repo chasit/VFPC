@@ -5,18 +5,17 @@
 #include "EuroScopePlugIn.h"
 #include "analyzeFP.hpp"
 
-CVFPCPlugin* gpMyPlugin = NULL;
+VFPCPlugin *gpMyPlugin = NULL;
 
-void    __declspec (dllexport)    EuroScopePlugInInit(EuroScopePlugIn::CPlugIn** ppPlugInInstance)
+void __declspec(dllexport) EuroScopePlugInInit(EuroScopePlugIn::CPlugIn **ppPlugInInstance)
 {
 	// create the instance
-	*ppPlugInInstance = gpMyPlugin = new CVFPCPlugin();
+	*ppPlugInInstance = gpMyPlugin = new VFPCPlugin();
 }
-
 
 //---EuroScopePlugInExit-----------------------------------------------
 
-void    __declspec (dllexport)    EuroScopePlugInExit(void)
+void __declspec(dllexport) EuroScopePlugInExit(void)
 {
 	// delete the instance
 	delete gpMyPlugin;
