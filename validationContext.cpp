@@ -2,14 +2,10 @@
 #include "validationContext.hpp"
 
 const std::unordered_map<ValidationCheck, std::string> failure_messages = {
-    { ValidationCheck::SID_EXISTS, "SID" },
-    { ValidationCheck::SID_DIRECTION, "E/O" },
-    { ValidationCheck::SID_AIRWAY_REQUIRED, "AWY" },
-    { ValidationCheck::FLIGHT_LEVEL_RESTRICTION, "FLR" },
-    { ValidationCheck::DIRECT_AFTER_SID, "DCT" },
-    { ValidationCheck::MAX_FLIGHT_LEVEL, "MAX" },
-    { ValidationCheck::SID_NOT_ALLOWED_FOR_DEST, "DST" },
-    { ValidationCheck::FORBIDDEN_FLIGHT_LEVEL, "FLR" },
+    { ValidationCheck::SID_ERROR, "SID" },
+    { ValidationCheck::ROUTE_ERROR, "RTE" },
+    { ValidationCheck::LEVEL_ERROR, "FL" },
+
     
 };
 

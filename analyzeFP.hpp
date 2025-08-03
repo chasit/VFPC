@@ -41,10 +41,10 @@ public:
 
 	virtual void getSids();
 
-	virtual map<string, string> validate_sid(CFlightPlan flightPlan, ValidationContext &ctx);
+	virtual void validate_sid(CFlightPlan flightPlan, ValidationContext &ctx, map<string, string>& returnValid);
 
-	virtual map<string, string> search_restrictions(
-		CFlightPlan flightPlan, ValidationContext &ctx, map<string, string> returnValid);
+	virtual void search_restrictions(
+		CFlightPlan flightPlan, ValidationContext &ctx, map<string, string>& returnValid);
 
 	virtual void OnFunctionCall(int FunctionId, const char *ItemString, POINT Pt, RECT Area);
 

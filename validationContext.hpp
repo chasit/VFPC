@@ -6,14 +6,9 @@
 #include <string>
 
 enum class ValidationCheck {
-    SID_EXISTS,
-    SID_DIRECTION,
-    SID_AIRWAY_REQUIRED,
-    FLIGHT_LEVEL_RESTRICTION,
-    DIRECT_AFTER_SID,
-    MAX_FLIGHT_LEVEL,
-    SID_NOT_ALLOWED_FOR_DEST,
-    FORBIDDEN_FLIGHT_LEVEL,
+    SID_ERROR,
+    ROUTE_ERROR,
+    LEVEL_ERROR,
     Count
 };
 
