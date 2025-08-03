@@ -26,9 +26,10 @@
                     {
                         "direction": "ODD",
                         "destinations": [
-                            "EHEH"
+                            "EHRD"
                         ],
-                        "airway_required": false
+                        "airway_required": false,
+                        "max_fl": 75
                     }
                 ],
                 "ARNEM": [
@@ -148,12 +149,22 @@
                 ],
                 "ELSIK": [
                     {
-                        "direction": "ODD"
+                        "direction": "ODD",
+                        "destinations": [
+                            "EBBR",
+                            "EBAW"
+                        ],
+                        "airway_required": false
                     }
                 ],
                 "INKET": [
                     {
-                        "direction": "EVEN"
+                        "direction": "EVEN",
+                        "destinations": [
+                            "EHRD"
+                        ],
+                        "airway_required": false,
+                        "max_fl": 75
                     }
                 ],
                 "LNO": [
@@ -163,12 +174,31 @@
                 ],
                 "OSGOS": [
                     {
-                        "direction": "ODD"
+                        "direction": "ODD",
+                        "destinations": [
+                            "EHBK"
+                        ],
+                        "airway_required": false
                     }
                 ],
                 "PESER": [
                     {
-                        "direction": "EVEN"
+                        "direction": "EVEN",
+                        "destinations": [
+                            "EHAM"
+                        ],
+                        "airway_required": false
+                    }
+                ],
+                "TELNI": [
+                    {
+                        "direction": "ODD",
+                        "destinations": [
+                            "EHGG",
+                            "EHLE"
+                        ],
+                        "airway_required": false,
+                        "max_fl": 95
                     }
                 ],
                 "TULIP": [
@@ -178,7 +208,8 @@
                 ],
                 "VELNI": [
                     {
-                        "direction": "ODD"
+                        "direction": "ODD",
+                        "airway_required": false
                     }
                 ],
                 "WOODY": [
@@ -194,11 +225,6 @@
                 "ARNEM": [
                     {
                         "direction": "ODD"
-                    }
-                ],
-                "ABNED": [
-                    {
-                        "direction": "EVEN"
                     }
                 ],
                 "ANDIK": [
@@ -248,12 +274,17 @@
             "sids": {
                 "DOBAK": [
                     {
-                        "direction": "ODD"
+                        "direction": "ODD",
+                        "airway_required": false
                     }
                 ],
                 "ENKOS": [
                     {
-                        "direction": "EVEN"
+                        "direction": "EVEN",
+                        "destinations": [
+                            "EHRD"
+                        ],
+                        "airway_required": false
                     }
                 ],
                 "NAPRO": [
@@ -263,12 +294,19 @@
                 ],
                 "NOVEN": [
                     {
-                        "direction": "EVEN"
+                        "direction": "EVEN",
+                        "destinations": [
+                            "EHAM"
+                        ],
+                        "airway_required": false,
+                        "max_fl": 70
                     }
                 ],
                 "OLWOF": [
                     {
-                        "direction": "ODD"
+                        "direction": "ODD",
+                        "airway_required": false
+
                     }
                 ],
                 "PAM": [
@@ -278,12 +316,23 @@
                 ],
                 "ROLDU": [
                     {
-                        "direction": "EVEN"
+                        "direction": "EVEN",
+                         "destinations": [
+                            "EHLE"
+                        ],
+                        "airway_required": false
                     }
                 ],
                 "RUMER": [
                     {
-                        "direction": "ODD"
+                        "direction": "ODD",
+                        "destinations": [
+                            "EHEH",
+                            "EHBD",
+                            "EHBK"
+                        ],
+                        "airway_required": false,
+                        "max_fl": 95
                     }
                 ],
                 "SONEB": [
@@ -298,12 +347,18 @@
                 ],
                 "TEBRO": [
                     {
-                        "direction": "ODD"
+                        "direction": "ODD",
+                        "destinations": [
+                            "EDDL",
+                            "EDLN",
+                            "EDLV"
+                        ]                
                     }
                 ],
                 "TEMLU": [
                     {
-                        "direction": "ODD"
+                        "direction": "ODD",
+                        "airway_required": false
                     }
                 ]
             }
@@ -313,17 +368,21 @@
             "sids": {
                 "NETEX": [
                     {
-                        "direction": "ODD"
+                        "direction": "ODD",
+                        "airway_required": false
                     }
                 ],
                 "LNO": [
                     {
-                        "direction": "EVEN"
+                        "direction": "ODD"
                     }
                 ],
                 "NVO": [
                     {
-                        "direction": "ODD"
+                        "direction": "ODD",
+                        "destinations": [
+                            "EDDK"
+                        ]
                     }
                 ],
                 "OSGOS": [
@@ -333,12 +392,23 @@
                 ],
                 "PESER": [
                     {
-                        "direction": "EVEN"
+                        "direction": "EVEN",
+                        "destinations": [
+                            "EHAM"
+                        ],
+                        "airway_required": false,
+                        "max_fl": 70
                     }
                 ],
                 "TELNI": [
                     {
-                        "direction": "ODD"
+                        "direction": "ODD",
+                        "destinations": [
+                            "EHGG",
+                            "EHLE"
+                        ],
+                        "airway_required": false,
+                        "max_fl": 90
                     }
                 ]
             }

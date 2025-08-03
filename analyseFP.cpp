@@ -252,6 +252,22 @@ void VFPCPlugin::validateSid(
 		}
 	}
 
+	// Check max_fl if present
+	if (sid_def.contains("max_fl"))
+	{
+		int max_fl = sid_def["max_fl"];
+		if (requestedFlightLevel > max_fl)
+		{
+			returnValid["MAX_FL"] = "Failed: Requested FL " + std::to_string(requestedFlightLevel) + " above SID max FL " + std::to_string(max_fl);
+			returnValid["STATUS"] = "Failed";
+			ctx.fail(ValidationCheck::LEVEL_ERROR);
+		}
+		else
+		{
+			returnValid["MAX_FL"] = "Passed: Requested FL " + std::to_string(requestedFlightLevel) + " within SID max FL " + std::to_string(max_fl);
+		}
+	}
+
 	if (sid_def.contains("destinations"))
 	{
 		const auto& destinations = sid_def["destinations"];
