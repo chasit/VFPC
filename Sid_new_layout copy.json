@@ -27,7 +27,8 @@
                         "direction": "ODD",
                         "destinations": [
                             "EHEH"
-                        ]
+                        ],
+                        "airway_required": false
                     }
                 ],
                 "ARNEM": [
@@ -242,7 +243,7 @@
                 ]
             }
         },
-        { 
+        {
             "icao": "EHGG",
             "sids": {
                 "DOBAK": [
@@ -583,6 +584,204 @@
                         "EGNV"
                     ],
                     "fl_capping": 355
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "EGEH4001",
+            "from": [
+                "EHAM",
+                "EHRD"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "EGKB",
+                        "EGLC",
+                        "EGMC",
+                        "EGTO"
+                    ],
+                    "fl_capping": 205
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "EGEH4002",
+            "from": [
+                "EHAM",
+                "EHEH"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "EGHL",
+                        "EGLF",
+                        "EGLK",
+                        "EGTD",
+                        "EGTF",
+                        "EGVO",
+                        "EGGW",
+                        "EGKB",
+                        "EGKK",
+                        "EGLC",
+                        "EGLL",
+                        "EGMC",
+                        "EGSC",
+                        "EGSS",
+                        "EGTO",
+                        "EGWU",
+                        "EGBJ",
+                        "EGHH",
+                        "EGHI",
+                        "EGVA",
+                        "EGVN"
+                    ],
+                    "fl_capping": 245
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "EH4001",
+            "from": [
+                "EHBK",
+                "EHEH",
+                "EHHV",
+                "EHKD",
+                "EHLE",
+                "EHRD",
+                "EHTX",
+                "EHWO"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "LFPB",
+                        "LFPG",
+                        "LFPN",
+                        "LFPO",
+                        "LFPT",
+                        "LFPV"
+                    ],
+                    "fl_capping": 245
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "EH4002",
+            "from": [
+                "EHAM"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "ELLX"
+                    ],
+                    "fl_capping": 245
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "EH4004",
+            "from": [
+                "EHAM",
+                "EHHV",
+                "EHKD",
+                "EHLE",
+                "EHRD",
+                "EHTX"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "EDDG",
+                        "EDDK",
+                        "EDDL",
+                        "EDGS",
+                        "EDKB",
+                        "EDKL",
+                        "EDLA",
+                        "EDLE",
+                        "EDLM",
+                        "EDLN",
+                        "EDLP",
+                        "EDLV",
+                        "EDLW",
+                        "ETNG",
+                        "ETNN",
+                        "EDFH"
+                    ],
+                    "fl_capping": 235
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "EH4005",
+            "from": [
+                "EHAM",
+                "EHLE"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "EHBD",
+                        "EHBK",
+                        "EHEH",
+                        "EHRD"
+                    ],
+                    "fl_capping": 75
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "EH4007",
+            "from": [
+                "EHAM"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "LFPB",
+                        "LFPG",
+                        "LFPN",
+                        "LFPO",
+                        "LFPT",
+                        "LFPV"
+                    ],
+                    "fl_capping": 305
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "EH4010",
+            "from": [
+                "EHBD",
+                "EHBK",
+                "EHEH",
+                "EHRD"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "EHAM",
+                        "EHLE"
+                    ],
+                    "fl_capping": 75
                 }
             ],
             "applicability": "H24"

@@ -41,8 +41,10 @@ public:
 
 	virtual void getSids();
 
-	// virtual map<string, string> validizeSid(CFlightPlan flightPlan);
-	virtual map<string, string> validate_sid(CFlightPlan flightPlan, ValidationContext& ctx);
+	virtual map<string, string> validate_sid(CFlightPlan flightPlan, ValidationContext &ctx);
+
+	virtual map<string, string> search_restrictions(
+		CFlightPlan flightPlan, ValidationContext &ctx, map<string, string> returnValid);
 
 	virtual void OnFunctionCall(int FunctionId, const char *ItemString, POINT Pt, RECT Area);
 
@@ -141,6 +143,8 @@ public:
 		return false;
 	}
 
+	virtual void logToFile(const std::string &message);
+
 	virtual void OnFlightPlanDisconnect(CFlightPlan FlightPlan);
 
 	virtual bool OnCompileCommand(const char *sCommandLine);
@@ -153,7 +157,7 @@ public:
 
 	virtual void checkFPDetail();
 
-	virtual string getFails(map<string, string> messageBuffer, ValidationContext& ctx);
+	virtual string getFails(map<string, string> messageBuffer, ValidationContext &ctx);
 
 	virtual void OnTimer(int Count);
 

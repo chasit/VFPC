@@ -7,8 +7,10 @@ const std::unordered_map<ValidationCheck, std::string> failure_messages = {
     { ValidationCheck::SID_AIRWAY_REQUIRED, "AWY" },
     { ValidationCheck::FLIGHT_LEVEL_RESTRICTION, "FLR" },
     { ValidationCheck::DIRECT_AFTER_SID, "DCT" },
-    { ValidationCheck::MAX_FLIGHTLEVEL, "MAX" },
+    { ValidationCheck::MAX_FLIGHT_LEVEL, "MAX" },
     { ValidationCheck::SID_NOT_ALLOWED_FOR_DEST, "DST" },
+    { ValidationCheck::FORBIDDEN_FLIGHT_LEVEL, "FLR" },
+    
 };
 
 ValidationContext::ValidationContext() {
