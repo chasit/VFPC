@@ -124,7 +124,7 @@ void CVFPCPlugin::getSids()
 }
 
 void CVFPCPlugin::validate_sid(
-	CFlightPlan flightPlan, ValidationContext &ctx, map<string, string>& returnValid)
+	CFlightPlan flightPlan, ValidationContext &ctx, map<string, string> &returnValid)
 {
 	returnValid["CS"] = flightPlan.GetCallsign();
 	logToFile("Checking flightplan of: " + returnValid["CS"]);
@@ -237,12 +237,11 @@ void CVFPCPlugin::validate_sid(
 
 		if ((direction == "ODD" && is_even) || (direction == "EVEN" && !is_even))
 		{
-			// return "invalid SID: FL " + std::to_string(level) +
-			// 	" does not match SID direction " + direction;
 			ctx.fail(ValidationCheck::LEVEL_ERROR);
 			returnValid["DIRECTION"] = "Failed " + direction;
 		}
-		else{
+		else
+		{
 			returnValid["DIRECTION"] = "Passed " + direction;
 		}
 	}
@@ -288,23 +287,24 @@ void CVFPCPlugin::validate_sid(
 		{
 			returnValid["AIRWAYS"] = "Failed airway requirement after exit point, but '" + first_token + "' does not look like an airway";
 			returnValid["STATUS"] = "Failed";
-			ctx.fail(ValidationCheck::SID_ERROR);
+			ctx.fail(ValidationCheck::ROUTE_ERROR);
 		}
-		else{
+		else
+		{
 			returnValid["AIRWAYS"] = "Passed airway requirement";
 		}
 	}
-	else{
+	else
+	{
 		returnValid["AIRWAYS"] = "Passed airway requirement";
-
 	}
 
 	// return "valid SID: SID checks passed";
 	logToFile("Last callsign: " + returnValid["CS"] + ", SID: " + sid_name + ", Origin: " + origin + ", Destination: " + destination + ". Attempting to search restrictions...");
-	}
+}
 
 void CVFPCPlugin::search_restrictions(
-	CFlightPlan flightPlan, ValidationContext &ctx, map<string, string>& returnValid)
+	CFlightPlan flightPlan, ValidationContext &ctx, map<string, string> &returnValid)
 {
 	auto data = sidData;
 	if (!data.contains("restrictions") || !data["restrictions"].is_array())
@@ -325,68 +325,7 @@ void CVFPCPlugin::search_restrictions(
 		boost::to_upper(route_tokens[i]);
 	}
 
-	// Function in function here
-	auto check_route = [&](const std::string &condition, const std::vector<std::string> &route_tokens) -> std::pair<std::string, bool>
-	{
-		if (condition.rfind("VIA ", 0) == 0)
-		{
-			std::string via_str = condition.substr(4);
-			auto via_points = split(via_str, ',');
-			for (const auto &point : via_points)
-			{
-				if (std::find(route_tokens.begin(), route_tokens.end(), point) != route_tokens.end())
-				{
-					return {"VIA matched", true}; // VIA point present, FL cap applicable
-				}
-			}
-			return {"VIA not present in flight plan, VIA logic skipped", false}; // VIA point not present, FL cap not applicable
-		}
-		else if (condition.rfind("NOT VIA ", 0) == 0)
-		{
-			std::string not_via_str = condition.substr(8);
-			auto not_via_points = split(not_via_str, ',');
-			bool not_via_found = false;
-			for (const auto &point : not_via_points)
-			{
-				if (std::find(route_tokens.begin(), route_tokens.end(), point) != route_tokens.end())
-				{
-					not_via_found = true;
-					break;
-				}
-			}
-			if (!not_via_found)
-			{
-				return {"NOT VIA matched", true}; // NOT VIA point not present, FL cap applicable
-			}
-			else
-			{
-				return {"NOT VIA point present in flight plan, NOT VIA logic skipped", false}; // NOT VIA point present, FL cap not applicable
-			}
-		}
-		return {"No condition or unknown condition", true}; // Default: FL cap applicable
-	};
-
-	// Function in function here
-	auto check_fl_cap = [&](const json &route, int fl_value)
-	{
-		if (route.contains("fl_capping"))
-		{
-			int cap = route["fl_capping"];
-			if (fl_value >= cap)
-			{
-				returnValid["FL_CAP"] = "Failed FL cap (above " + std::to_string(cap) + ")";
-				ctx.fail(ValidationCheck::LEVEL_ERROR);
-			}
-			else
-			{
-				returnValid["FL_CAP"] = "Passed FL cap (below " + std::to_string(cap) + ")";
-			}
-		}
-		else
-		{
-			returnValid["FL_CAP"] = "Passed FL cap";
-		}
-	};
+	std::optional<int> min_capping;
 
 	for (const auto &restriction : data["restrictions"])
 	{
@@ -405,7 +344,8 @@ void CVFPCPlugin::search_restrictions(
 						returnValid["FORBIDDEN_FL"] = "Failed forbidden FL";
 						ctx.fail(ValidationCheck::LEVEL_ERROR);
 					}
-					else { 
+					else
+					{
 						returnValid["FORBIDDEN_FL"] = "Passed forbidden FL";
 					}
 				}
@@ -455,468 +395,117 @@ void CVFPCPlugin::search_restrictions(
 					break;
 				}
 			}
-			if (!dest_match){
-				if (returnValid["FL_CAP"].empty()){
+			if (!dest_match)
+			{
+				if (returnValid["FL_CAP"].empty())
+				{
 					returnValid["FL_CAP"] = "Passed FL cap";
 				}
 				continue;
 			}
 
+			// Part of this monstrosity is due to the fact that there is a "VIA" and "NOT VIA" condition for some routes.
+			// This means that if the route goes via a certain waypoint it has a different max height than if it doesn't go via
+			// that waypoint.. Eurocontrol really is fun with these things :(
+
 			std::string condition = route.value("condition", "");
-			auto [route_msg, fl_cap_applicable] = check_route(condition, route_tokens);
-			if (fl_cap_applicable)
+			bool condition_matched = false;
+
+			if (condition.empty())
 			{
-				check_fl_cap(route, requestedFlightLevel);
+				condition_matched = true;
 			}
-			else
+			else if (condition.rfind("VIA ", 0) == 0 && condition.rfind("NOT VIA", 0) != 0)
+			{
+				std::string via_str = condition.substr(4);
+				auto via_points = split(via_str, ',');
+				for (const auto &p : via_points)
+				{
+					if (std::find(route_tokens.begin(), route_tokens.end(), p) != route_tokens.end())
+					{
+						condition_matched = true;
+						break;
+					}
+				}
+
+				if (!condition_matched)
+				{
+					// Attempt fallback to NOT VIA
+					for (const auto &fallback : restriction["routes"])
+					{
+						std::string fb_cond = fallback.value("condition", "");
+						if (fb_cond.rfind("NOT VIA ", 0) == 0)
+						{
+							std::string not_via_str = fb_cond.substr(8);
+							auto not_via_points = split(not_via_str, ',');
+							bool found = false;
+							for (const auto &np : not_via_points)
+							{
+								if (std::find(route_tokens.begin(), route_tokens.end(), np) != route_tokens.end())
+								{
+									found = true;
+									break;
+								}
+							}
+							if (!found)
+							{
+								if (fallback.contains("fl_capping"))
+								{
+									int cap = fallback["fl_capping"];
+									min_capping = !min_capping.has_value() ? cap : std::min(min_capping.value(), cap);
+								}
+								else
+								{
+									// No cap, so it's all fine in this case
+									returnValid["FL_CAP"] = "Passed FL cap";
+								}
+							}
+						}
+					}
+					continue;
+				}
+			}
+			else if (condition.rfind("NOT VIA ", 0) == 0)
+			{
+				std::string not_via_str = condition.substr(8);
+				auto not_via_points = split(not_via_str, ',');
+				bool found = false;
+				for (const auto &p : not_via_points)
+				{
+					if (std::find(route_tokens.begin(), route_tokens.end(), p) != route_tokens.end())
+					{
+						found = true;
+						break;
+					}
+				}
+				if (!found)
+					condition_matched = true;
+			}
+			if (condition_matched && route.contains("fl_capping"))
+			{
+				int cap = route["fl_capping"];
+				min_capping = !min_capping.has_value() ? cap : std::min(min_capping.value(), cap);
+			}
+			else if (condition_matched && !route.contains("fl_capping"))
 			{
 				returnValid["FL_CAP"] = "Passed FL cap";
 			}
-			
-
-			// If VIA logic was skipped, try NOT VIA fallback if present
-			if (condition.rfind("VIA ", 0) == 0 && route_msg == "VIA not present in flight plan, VIA logic skipped")
-			{
-				for (const auto &fallback_route : restriction["routes"])
-				{
-					std::string fallback_cond = fallback_route.value("condition", "");
-					auto [fallback_msg, fallback_fl_cap_applicable] = check_route(fallback_cond, route_tokens);
-					if (fallback_cond.rfind("NOT VIA ", 0) == 0 && fallback_msg == "NOT VIA matched")
-					{
-						if (fallback_fl_cap_applicable)
-						{
-							check_fl_cap(fallback_route, requestedFlightLevel);
-						}
-						else
-						{
-							returnValid["FL_CAP"] = "Passed FL cap";
-						}
-					}
-				}
-			}
+		}
+	}
+	// After collecting all capping values
+	if (min_capping.has_value())
+	{
+		if (requestedFlightLevel >= min_capping.value())
+		{
+			returnValid["FL_CAP"] = "Failed FL cap (above " + std::to_string(min_capping.value()) + ")";
+			ctx.fail(ValidationCheck::LEVEL_ERROR);
+		}
+		else
+		{
+			returnValid["FL_CAP"] = "Passed FL cap (below " + std::to_string(min_capping.value()) + ")";
 		}
 	}
 }
-
-// Does the checking and magic stuff, so everything will be alright, when this is finished! Or not. Who knows?
-// map<string, string> CVFPCPlugin::validizeSid(CFlightPlan flightPlan) {
-// 	/*	CS = Callsign,
-// 		AIRPORT = Origin
-// 		SEARCH = SID search error
-// 		SID = SID,
-// 		DESTINATION = Destination,
-// 		AIRWAYS = Airway,
-// 		ENGINE = Engine Type,
-// 		DIRECTION = Even / Odd,
-// 		MIN_FL = Minimum Flight Level,
-// 		MAX_FL = Maximum Flight Level,
-// 		FORBIDDEN_FL = Forbidden Flight Level,
-// 		NAVIGATION = Navigation restriction,
-// 		SID_DCT = A DCT after the exit fix
-// 		STATUS = Passed
-// 	*/
-// 	map<string, string> returnValid;
-
-// 	returnValid["CS"] = flightPlan.GetCallsign();
-// 	returnValid["STATUS"] = "Passed";
-// 	bool valid{ false };
-
-// 	string origin = flightPlan.GetFlightPlanData().GetOrigin(); boost::to_upper(origin);
-// 	string destination = flightPlan.GetFlightPlanData().GetDestination(); boost::to_upper(destination);
-// 	SizeType origin_int;
-// 	int RFL = flightPlan.GetFlightPlanData().GetFinalAltitude();
-
-// 	vector<string> route = split(flightPlan.GetFlightPlanData().GetRoute(), ' ');
-// 	for (std::size_t i = 0; i < route.size(); i++) {
-// 		boost::to_upper(route[i]);
-// 	}
-
-// 	if (strcmp(flightPlan.GetFlightPlanData().GetPlanType(), "V") > -1) {
-// 		returnValid["SEARCH"] = "VFR Flight, no SID required!";
-// 		returnValid["STATUS"] = "Passed";
-// 		return returnValid;
-// 	}
-
-// 	string sid = flightPlan.GetFlightPlanData().GetSidName(); boost::to_upper(sid);
-
-// 	// Flightplan has SID
-// 	if (!sid.length()) {
-// 		returnValid["SEARCH"] = "Flightplan doesn't have SID set!";
-// 		returnValid["STATUS"] = "Failed";
-// 		return returnValid;
-// 	}
-
-// 	if (sid == "DIFT") {
-// 		returnValid["SEARCH"] = "DIFT Set, not checking the flightplan!";
-// 		returnValid["STATUS"] = "Passed";
-// 		return returnValid;
-// 	}
-
-// 	string first_wp = sid.substr(0, sid.find_first_of("0123456789"));
-// 	if (0 != first_wp.length())
-// 		boost::to_upper(first_wp);
-// 	string sid_suffix;
-// 	if (first_wp.length() != sid.length()) {
-// 		sid_suffix = sid.substr(sid.find_first_of("0123456789"), sid.length());
-// 		boost::to_upper(sid_suffix);
-// 	}
-
-// 	// Did not find a valid SID
-// 	if (sid_suffix.length() == 0 && "VCT" != first_wp) {
-// 		returnValid["SEARCH"] = "Flightplan doesn't have SID set!";
-// 		returnValid["STATUS"] = "Failed";
-// 		return returnValid;
-// 	}
-
-// 	string first_airway;
-
-// 	string first_pt;
-
-// 	string assigned_sid = first_wp;
-
-// 	if (sid_mapping.HasMember(first_wp.c_str())) {
-// 		string temp = sid_mapping[first_wp.c_str()].GetString();
-// 		first_wp = temp;
-// 	}
-
-// 	vector<string>::iterator it = find(route.begin(), route.end(), first_wp);
-// 	if (it != route.end() && (it - route.begin()) != route.size() - 1) {
-// 		first_airway = route[(it - route.begin()) + 1];
-
-// 		first_pt = route[0];
-
-// 		boost::to_upper(first_airway);
-// 	}
-
-// 	// If the route contains only one waypoint, it's probably a route that goes within the EHAA FIR.
-// 	// Therefore the SID is probably OK to verify.
-// 	if (route.size() != 1 && (first_airway.empty() || first_pt.empty())) {
-// 		returnValid["SEARCH"] = "Could not determine routing to check! DEBUG LOG! >> First Airway: " + first_airway + ", First Pt: " + first_pt + ", First waypoint: " + first_wp + ", ROUTE LEN: " + std::to_string(route.size());
-// 		returnValid["STATUS"] = "Failed";
-// 		return returnValid;
-// 	}
-
-// 	// Airport defined
-// 	if (std::find(airports.begin(), airports.end(), origin) != airports.end()) {
-// 		returnValid["SEARCH"] = "No valid Airport found!";
-// 		returnValid["STATUS"] = "Failed";
-// 		return returnValid;
-// 	}
-// 	else
-// 		origin_int = airports[origin];
-
-// 	// Any SIDs defined
-// 	if (!sid_details[origin_int].HasMember("sids") || sid_details[origin_int]["sids"].IsArray()) {
-// 		returnValid["SEARCH"] = "No SIDs defined!";
-// 		returnValid["STATUS"] = "Failed";
-// 		return returnValid;
-// 	}
-
-// 	// Needed SID defined
-// 	if (!sid_details[origin_int]["sids"].HasMember(assigned_sid.c_str()) || !sid_details[origin_int]["sids"][assigned_sid.c_str()].IsArray()) {
-// 		returnValid["SEARCH"] = "No valid SID found!";
-// 		returnValid["STATUS"] = "Failed";
-// 		return returnValid;
-// 	}
-
-// 	const Value& conditions = sid_details[origin_int]["sids"][assigned_sid.c_str()];
-// 	for (SizeType i = 0; i < conditions.Size(); i++) {
-// 		returnValid.clear();
-// 		returnValid["CS"] = flightPlan.GetCallsign();
-// 		bool passed[checksAmount]{ false };
-// 		valid = false;
-
-// 		bool airway_rqrd = true;
-
-// 		if (conditions[i]["airway_required"].Size()) {
-// 			string required_airway = conditions[i]["airway_required"].GetString();
-// 			if (required_airway == "NO" || required_airway == "FALSE") {
-// 				airway_rqrd = false;
-// 			}
-// 		}
-
-// 		// Skip SID if the check is suffix-related
-// 		if (conditions[i]["suffix"].IsString() && conditions[i]["suffix"].GetString() != sid_suffix) {
-// 			continue;
-// 		}
-
-// 		// Does Condition contain our destination if it's limited
-// 		if (conditions[i]["destinations"].IsArray() && conditions[i]["destinations"].Size()) {
-// 			string dest;
-// 			if ((dest = destArrayContains(conditions[i]["destinations"], destination.c_str())).size()) {
-// 				if (dest.size() < 4)
-// 					dest += string(4 - dest.size(), '*');
-// 				returnValid["DESTINATION"] = "Passed Destination (" + dest + ")";
-// 				passed[0] = true;
-// 			}
-// 			else {
-// 				continue;
-// 			}
-// 		}
-// 		else {
-// 			returnValid["DESTINATION"] = "No Destination restr";
-// 			passed[0] = true;
-// 		}
-
-// 		// Does Condition contain our first airway if it's limited
-// 		if (conditions[i]["airways"].IsArray() && conditions[i]["airways"].Size()) {
-// 			string rte = flightPlan.GetFlightPlanData().GetRoute();
-// 			auto test = flightPlan.GetExtractedRoute().GetPointsNumber();
-// 			if (routeContainsAirways(flightPlan, conditions[i]["airways"])) {
-// 				returnValid["AIRWAYS"] = "Passed Airways";
-// 				passed[1] = true;
-// 			}
-// 			else {
-// 				// The airway names, one of which needs to be present
-// 				string waypoints;
-// 				for (SizeType j = 0; j < conditions[i]["airways"].Size(); j++) {
-// 					string waypoint = conditions[i]["airways"][j].GetString();
-// 					if (conditions[i]["airways"].Size() > j + 1) {
-// 						waypoint += ", ";
-// 					}
-// 					waypoints.append(waypoint);
-// 				}
-// 				auto pos = waypoints.find_last_of(",");
-// 				if (pos != -1)
-// 					waypoints.replace(pos, 1, " or");
-
-// 				returnValid["AIRWAYS"] = "Failed Airways. FP not routing via " + waypoints;
-
-// 			}
-// 		}
-// 		else {
-// 			returnValid["AIRWAYS"] = "No Airway restr";
-// 			passed[1] = true;
-// 		}
-
-// 		// Regex for an airway according to ICAO Annex 11 Appendix 1 (https://ffac.ch/wp-content/uploads/2020/10/ICAO-Annex-11-Air-Traffic-Services.pdf)
-// 		// Also see https://aviation.stackexchange.com/a/59784
-// 		std::regex reg(R"([A-Z]{1,2}\d{1,3})");
-
-// 		bool found_airway{
-// 		std::regex_match(first_airway, reg) };
-
-// 		if (airway_rqrd && (first_airway == "DCT" || !found_airway)) {
-// 			returnValid["SID_DCT"] = "Failed: Flightplan contains a DCT after the SID!";
-// 		}
-// 		else {
-// 			if (!airway_rqrd) {
-// 				returnValid["SID_DCT"] = "No airway required after SID";
-// 			}
-// 			else
-// 			{
-// 				returnValid["SID_DCT"] = "No DCT after SID";
-// 			}
-// 			passed[8] = true;
-// 		}
-
-// 		returnValid["DEBUG_AIRWAY_CHK"] = first_airway;
-// 		returnValid["DEBUG_AIRWAY_CHK2"] = first_wp;
-// 		returnValid["DEBUG_AIRWAY_CHK3"] = first_pt;
-// 		returnValid["DEBUG_AIRWAY_CHK4"] = std::to_string(found_airway);
-// 		//returnValid["AIRWAY_CHK3"] = route[0];
-
-// 		// Is Engine Type if it's limited (P=piston, T=turboprop, J=jet, E=electric)
-// 		if (conditions[i]["engine"].IsString()) {
-// 			if (conditions[i]["engine"].GetString()[0] == flightPlan.GetFlightPlanData().GetEngineType()) {
-// 				returnValid["ENGINE"] = "Passed Engine type (" + (string)conditions[i]["engine"].GetString() + ')';
-// 				passed[2] = true;
-// 			}
-// 			else {
-// 				returnValid["ENGINE"] = "Failed Engine type. Needed: " + (string)conditions[i]["engine"].GetString();
-// 			}
-// 		}
-// 		else if (conditions[i]["engine"].IsArray() && conditions[i]["engine"].Size()) {
-// 			if (arrayContains(conditions[i]["engine"], flightPlan.GetFlightPlanData().GetEngineType())) {
-// 				returnValid["ENGINE"] = "Passed Engine type (" + arrayToString(conditions[i]["engine"], ',') + ")";
-// 				passed[2] = true;
-// 			}
-// 			else {
-// 				returnValid["ENGINE"] = "Failed Engine type. Needed: " + arrayToString(conditions[i]["engine"], ',');
-// 			}
-// 		}
-// 		else {
-// 			returnValid["ENGINE"] = "No Engine type restr";
-// 			passed[2] = true;
-// 		}
-
-// 		valid = true;
-// 		returnValid["SID"] = assigned_sid;
-
-// 		// Direction of condition (EVEN, ODD, ANY)
-// 		string direction = conditions[i]["direction"].GetString();
-// 		boost::to_upper(direction);
-
-// 		if (direction == "EVEN") {
-// 			if ((RFL / 1000) % 2 == 0) {
-// 				returnValid["DIRECTION"] = "Passed Even";
-// 				passed[3] = true;
-// 			}
-// 			else {
-// 				returnValid["DIRECTION"] = "Failed Even";
-// 			}
-// 		}
-// 		else if (direction == "ODD") {
-// 			if ((RFL / 1000) % 2 != 0) {
-// 				returnValid["DIRECTION"] = "Passed Odd";
-// 				passed[3] = true;
-// 			}
-// 			else {
-// 				returnValid["DIRECTION"] = "Failed Odd";
-// 			}
-// 		}
-// 		else if (direction == "ANY") {
-// 			returnValid["DIRECTION"] = "No Direction restr";
-// 			passed[3] = true;
-// 		}
-// 		else {
-// 			string errorText{ "Config Error for Even/Odd on SID: " };
-// 			errorText += assigned_sid;
-// 			sendMessage("Error", errorText);
-// 			returnValid["DIRECTION"] = "Config Error for Even/Odd on this SID!";
-// 		}
-
-// 		// maybe this can be done better later, but this works fine
-// 		std::vector<int> rvsm_even_levels = { 43, 47, 51, 55, 59, 63 };
-// 		std::vector<int> rvsm_odd_levels = { 45, 49, 53, 57, 61 };
-
-// 		if ((RFL / 1000) > 41) {
-// 			if (direction == "EVEN") {
-// 				int cnt = std::count(rvsm_even_levels.begin(), rvsm_even_levels.end(), (RFL/1000));
-// 				if (cnt > 0) {
-// 					returnValid["DIRECTION"] = "Passed Even for non RVSM Flight Level";
-// 					passed[3] = true;
-// 				}
-// 				else {
-// 					returnValid["DIRECTION"] = "Failed Even for non RVSM Flight Level";
-// 					passed[3] = false;
-
-// 				}
-// 			}
-// 			if (direction == "ODD") {
-// 				int cnt = std::count(rvsm_odd_levels.begin(), rvsm_odd_levels.end(), (RFL / 1000));
-// 				if (cnt > 0) {
-// 					returnValid["DIRECTION"] = "Passed Odd for non RVSM Flight Level";
-// 					passed[3] = true;
-// 				}
-// 				else {
-// 					returnValid["DIRECTION"] = "Failed Odd for non RVSM Flight Level";
-// 					passed[3] = false;
-
-// 				}
-// 			}
-// 		}
-
-// 		// Flight level (min_fl, max_fl)
-// 		int min_fl, max_fl;
-// 		if (conditions[i].HasMember("min_fl") && (min_fl = conditions[i]["min_fl"].GetInt()) > 0) {
-// 			if ((RFL / 100) >= min_fl) {
-// 				returnValid["MIN_FL"] = "Passed Minimum FL (" + to_string(conditions[i]["min_fl"].GetInt()) + ')';
-// 				passed[4] = true;
-// 			}
-// 			else {
-// 				returnValid["MIN_FL"] = "Failed Minimum FL. Min FL: " + to_string(min_fl);
-// 			}
-// 		}
-// 		else {
-// 			returnValid["MIN_FL"] = "No Minimum FL";
-// 			passed[4] = true;
-// 		}
-
-// 		if (conditions[i].HasMember("max_fl") && (max_fl = conditions[i]["max_fl"].GetInt()) > 0) {
-// 			if ((RFL / 100) <= max_fl) {
-// 				returnValid["MAX_FL"] = "Passed Maximum FL (" + to_string(conditions[i]["max_fl"].GetInt()) + ')';
-// 				passed[5] = true;
-// 			}
-// 			else {
-// 				returnValid["MAX_FL"] = "Failed Maximum FL. Max FL: " + to_string(max_fl);
-// 			}
-// 		}
-// 		else {
-// 			returnValid["MAX_FL"] = "No Maximum FL";
-// 			passed[5] = true;
-// 		}
-
-// 		// Flight level (forbidden)
-// 		// Does Condition contain our first airway if it's limited
-// 		bool has_fl250 = false;
-// 		if (to_string(RFL / 100) == "250") {
-// 			has_fl250 = true;
-// 		}
-
-// 		if (conditions[i]["forbidden_fls"].IsArray() && conditions[i]["forbidden_fls"].Size()) {
-// 			if (routeContains(to_string(RFL / 100), conditions[i]["forbidden_fls"])) {
-// 				returnValid["FORBIDDEN_FL"] = "Failed forbidden FLs. Forbidden FL: " + to_string(RFL / 100);
-// 			}
-// 			else if(has_fl250){
-// 				returnValid["FORBIDDEN_FL"] = "Failed forbidden FLs. Forbidden FL: 250";
-
-// 			}
-// 			else {
-// 				returnValid["FORBIDDEN_FL"] = "Passed forbidden FLs";
-// 				passed[6] = true;
-// 			}
-// 		}
-// 		else {
-// 			if (has_fl250) {
-// 				returnValid["FORBIDDEN_FL"] = "Failed forbidden FLs. Forbidden FL: 250";
-// 			}
-// 			else
-// 			{
-// 				returnValid["FORBIDDEN_FL"] = "No forbidden FL";
-// 				passed[6] = true;
-// 			}
-// 		}
-
-// 		// Special navigation requirements needed
-// 		if (conditions[i]["navigation"].IsString()) {
-// 			string navigation_constraints(conditions[i]["navigation"].GetString());
-// 			if (string::npos == navigation_constraints.find_first_of(flightPlan.GetFlightPlanData().GetCapibilities())) {
-// 				returnValid["NAVIGATION"] = "Failed navigation capability restr. Needed: " + navigation_constraints;
-// 				passed[7] = false;
-// 			}
-// 			else {
-// 				returnValid["NAVIGATION"] = "No navigation capability restr";
-// 				passed[7] = true;
-// 			}
-// 		}
-// 		else {
-// 			returnValid["NAVIGATION"] = "No navigation capability restr";
-// 			passed[7] = true;
-// 		}
-
-// 		bool passedVeri{ false };
-
-// 		for (int i = 0; i < checksAmount; i++) {
-// 			if (passed[i])
-// 			{
-// 				passedVeri = true;
-// 			}
-// 			else {
-// 				passedVeri = false;
-// 				break;
-// 			}
-// 		}
-// 		if (passedVeri) {
-// 			returnValid["STATUS"] = "Passed";
-// 			break;
-// 		}
-// 		else {
-// 			returnValid["STATUS"] = "Failed";
-// 			if (!passed[0])
-// 				continue;
-// 			else
-// 				break;
-// 		}
-
-// 	}
-
-// 	if (!valid) {
-// 		returnValid["SID"] = "No valid SID found!";
-// 		returnValid["STATUS"] = "Failed";
-// 	}
-// 	return returnValid;
-// }
 
 // Method is called when the function (tag) is present
 void CVFPCPlugin::OnFunctionCall(int FunctionId, const char *ItemString, POINT Pt, RECT Area)
@@ -966,7 +555,6 @@ void CVFPCPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarget,
 
 			validate_sid(FlightPlan, ctx, messageBuffer);
 			search_restrictions(FlightPlan, ctx, messageBuffer);
-
 
 			if (find(AircraftIgnore.begin(), AircraftIgnore.end(), FlightPlan.GetCallsign()) != AircraftIgnore.end())
 			{
@@ -1071,7 +659,8 @@ void CVFPCPlugin::checkFPDetail()
 	search_restrictions(FlightPlanSelectASEL(), ctx, messageBuffer);
 
 	string buffer{};
-	if (!ctx.isValid()){
+	if (!ctx.isValid())
+	{
 		messageBuffer["STATUS"] = "Failed";
 	}
 	if (messageBuffer.find("SEARCH") == messageBuffer.end())
@@ -1159,30 +748,4 @@ void CVFPCPlugin::OnTimer(int Counter)
 		initialSidLoad = false;
 		sendMessage("Unloading", "All loaded SIDs");
 	}
-}
-
-// Checks whether the route contains an airway after the sid
-bool CVFPCPlugin::routeContainsAirways(CFlightPlan flightPlan, const Value &airways)
-{
-	bool routeContainsAirway = false;
-	// all points of the FP are part of the extracted route, they're numbered.
-	// Therefore we first get all the numbers (e.g. 8) and then go through all of them to see
-	// if any of the points match any of the given airways, one does, then we return true
-	int total_points = flightPlan.GetExtractedRoute().GetPointsNumber();
-
-	for (int i = 0; i < total_points; i++)
-	{
-		string item = flightPlan.GetExtractedRoute().GetPointName(i);
-		// Apparently this is broken in this project for some reason...
-		// auto find = std::find(airways.Begin(), airways.End(), item);
-		for (SizeType j = 0; j < airways.Size(); j++)
-		{
-			if (item == airways[j].GetString())
-			{
-				routeContainsAirway = true;
-				return routeContainsAirway;
-			}
-		}
-	}
-	return routeContainsAirway;
 }
