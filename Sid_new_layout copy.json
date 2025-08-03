@@ -1,0 +1,591 @@
+{
+    "sid_mapping": {
+        "BETUS": "ANDIK",
+        "NOPSU": "ANDIK",
+        "SPY": "ANDIK",
+        "TORGA": "ANDIK",
+        "ELPAT": "ARNEM",
+        "NYKER": "ARNEM",
+        "WISPA": "BERGI",
+        "IVLUT": "EDUPO",
+        "RENDI": "EDUPO",
+        "VOLLA": "IDRID",
+        "VALKO": "IDRID",
+        "DENAG": "IDRID",
+        "OGINA": "LOPIK",
+        "ROVEN": "LOPIK",
+        "LARAS": "WOODY",
+        "KUDAD": "WOODY",
+        "SOMEL": "ABNED"
+    },
+    "sid_details": [
+        {
+            "icao": "EHAM",
+            "sids": {
+                "ANDIK": [
+                    {
+                        "direction": "ODD",
+                        "destinations": [
+                            "EHEH"
+                        ]
+                    }
+                ],
+                "ARNEM": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "BERGI": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "BETUS": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "DENAG": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "EDUPO": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "ELPAT": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "IDRID": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "IVLUT": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "KUDAD": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "LARAS": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "LOPIK": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "NOPSU": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "NYKER": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "OGINA": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "RENDI": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "ROVEN": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "SPY": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "VALKO": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "VOLLA": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "WISPA": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "WOODY": [
+                    {
+                        "direction": "ODD"
+                    }
+                ]
+            }
+        },
+        {
+            "icao": "EHEH",
+            "sids": {
+                "ABNED": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "ELSIK": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "INKET": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "LNO": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "OSGOS": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "PESER": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "TULIP": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "VELNI": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "WOODY": [
+                    {
+                        "direction": "ODD"
+                    }
+                ]
+            }
+        },
+        {
+            "icao": "EHRD",
+            "sids": {
+                "ARNEM": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "ABNED": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "ANDIK": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "COA": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "INKET": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "LUNIX": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "NEPTU": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "SOMEL": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "TULIP": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "WOODY": [
+                    {
+                        "direction": "ODD"
+                    }
+                ]
+            }
+        },
+        { 
+            "icao": "EHGG",
+            "sids": {
+                "DOBAK": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "ENKOS": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "NAPRO": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "NOVEN": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "OLWOF": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "PAM": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "ROLDU": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "RUMER": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "SONEB": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "SPY": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "TEBRO": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "TEMLU": [
+                    {
+                        "direction": "ODD"
+                    }
+                ]
+            }
+        },
+        {
+            "icao": "EHBK",
+            "sids": {
+                "NETEX": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "LNO": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "NVO": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "OSGOS": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],
+                "PESER": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "TELNI": [
+                    {
+                        "direction": "ODD"
+                    }
+                ]
+            }
+        }
+    ],
+    "restrictions": [
+        {
+            "id": "ALL",
+            "From": [
+                "EHAM",
+                "EHBK",
+                "EHEH",
+                "EHHV",
+                "EHKD",
+                "EHLE",
+                "EHRD",
+                "EHTX",
+                "EHWO",
+                "EHBD"
+            ],
+            "forbidden_fls": 250
+        },
+        {
+            "id": "ED4223",
+            "From": [
+                "EHAM"
+            ],
+            "routes": [
+                {
+                    "destinations": [
+                        "EDDM "
+                    ],
+                    "fl_capping": 355
+                }
+            ],
+            "applicability": "AIRAC APR – FIRST AIRAC OCT"
+        },
+        {
+            "id": "EBYX4002",
+            "From": [
+                "EHAM"
+            ],
+            "routes": [
+                {
+                    "condition": "VIA EBBUCTA",
+                    "destinations": [
+                        "LFST",
+                        "LFGA",
+                        "EDTL"
+                    ],
+                    "fl_capping": 245
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "EBYX4003",
+            "from": [
+                "EHAM",
+                "EHRD"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "LFOH",
+                        "LFRG"
+                    ],
+                    "fl_capping": 245
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "ED4003",
+            "from": [
+                "EHBK",
+                "EHBD"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "EDDS",
+                        "EDFM",
+                        "EDFV",
+                        "EDRY",
+                        "EDSB",
+                        "EDTM",
+                        "EDTY"
+                    ],
+                    "fl_capping": 245
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "ED4094",
+            "from": [
+                "EHBK",
+                "EHEH",
+                "ELLX"
+            ],
+            "routes": [
+                {
+                    "condition": "AIRAC APR – FIRST AIRAC OCT",
+                    "destinations": [
+                        "EDDM",
+                        "EDM*",
+                        "EDNY",
+                        "EDJA"
+                    ],
+                    "fl_capping": 355
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "ED4128",
+            "from": [
+                "EHBK",
+                "EHEH",
+                "ELLX"
+            ],
+            "routes": [
+                {
+                    "condition": "VIA EDUUUTAC, EDUUUTAW; AIRAC APR – FIRST AIRAC OCT",
+                    "destinations": [
+                        "LKPR",
+                        "LOWW"
+                    ],
+                    "fl_capping": 355
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "EDYX4026",
+            "from": [
+                "EHAM"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "EDDV",
+                        "EDDW"
+                    ],
+                    "fl_capping": 245
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "EDYX4043",
+            "from": [
+                "EHEH"
+            ],
+            "routes": [
+                {
+                    "condition": "VIA EDYYUTA",
+                    "destinations": [
+                        "EDDS",
+                        "EDSB"
+                    ],
+                    "fl_capping": 315
+                },
+                {
+                    "condition": "NOT VIA EDYYUTA",
+                    "destinations": [
+                        "EDDS",
+                        "EDSB"
+                    ],
+                    "fl_capping": 245
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "EDYX4044",
+            "from": [
+                "EHEH"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "EDFM",
+                        "EDFV",
+                        "EDRY",
+                        "EDTM",
+                        "EDTY"
+                    ],
+                    "fl_capping": 245
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "EG4046",
+            "from": [
+                "EHAM",
+                "EHHV",
+                "EHKD",
+                "EHLE",
+                "EHRD",
+                "EHTX"
+            ],
+            "routes": [
+                {
+                    "condition": "",
+                    "destinations": [
+                        "EGMD"
+                    ],
+                    "fl_capping": 215
+                }
+            ],
+            "applicability": "H24"
+        },
+        {
+            "id": "EG4147",
+            "from": [
+                "EHAM",
+                "EHBK",
+                "EHGG",
+                "EHHO",
+                "EHLW",
+                "EHTE"
+            ],
+            "routes": [
+                {
+                    "condition": "VIA ENZEN, RAVLO",
+                    "destinations": [
+                        "EGCC",
+                        "EGGP",
+                        "EGNR",
+                        "EGCN",
+                        "EGNH",
+                        "EGNM",
+                        "EGNO",
+                        "EGNJ",
+                        "EGNT",
+                        "EGNV"
+                    ],
+                    "fl_capping": 355
+                }
+            ],
+            "applicability": "H24"
+        }
+    ]
+}
