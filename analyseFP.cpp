@@ -256,15 +256,15 @@ void VFPCPlugin::validateSid(
 	if (sid_def.contains("max_fl"))
 	{
 		int max_fl = sid_def["max_fl"];
-		if (requestedFlightLevel > max_fl)
+		if ((requestedFlightLevel*10) > max_fl)
 		{
-			returnValid["MAX_FL"] = "Failed: Requested FL " + std::to_string(requestedFlightLevel) + " above SID max FL " + std::to_string(max_fl);
+			returnValid["MAX_FL"] = "Failed max FL for SID (above " + std::to_string(max_fl) + ")";
 			returnValid["STATUS"] = "Failed";
 			ctx.fail(ValidationCheck::LEVEL_ERROR);
 		}
 		else
 		{
-			returnValid["MAX_FL"] = "Passed: Requested FL " + std::to_string(requestedFlightLevel) + " within SID max FL " + std::to_string(max_fl);
+			returnValid["MAX_FL"] = "Passed max FL for SID (below " + std::to_string(max_fl) + ")";
 		}
 	}
 
@@ -286,7 +286,7 @@ void VFPCPlugin::validateSid(
 			}
 			else
 			{
-				returnValid["DESTINATION"] = "Passed, SID valid for destination " + destination;
+				returnValid["DESTINATION"] = "Passed SID valid for destination " + destination;
 			}
 		}
 	}
@@ -301,7 +301,6 @@ void VFPCPlugin::validateSid(
 	{
 		// Very basic airway check: airway tokens are usually alphanumeric (e.g., "UL620", "N198")
 		string first_token = route_tokens[1];
-		logToFile("Debug: " + first_token);
 		bool looks_like_airway = std::any_of(first_token.begin(), first_token.end(), ::isalpha) &&
 			std::any_of(first_token.begin(), first_token.end(), ::isdigit);
 
