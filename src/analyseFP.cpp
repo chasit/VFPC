@@ -56,6 +56,7 @@ VFPCPlugin::VFPCPlugin(void) : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, MY_P
 // Run on Plugin destruction, Ie. Closing EuroScope or unloading plugin
 VFPCPlugin::~VFPCPlugin()
 {
+
 }
 
 void VFPCPlugin::debugMessage(string message)
@@ -157,11 +158,11 @@ void VFPCPlugin::validateSid(
 		return;
 	}
 
-	string sid_name = flightPlan.GetFlightPlanData().GetSidName();
-	boost::to_upper(sid_name);
+	string fullSidName = flightPlan.GetFlightPlanData().GetSidName();
+	boost::to_upper(fullSidName);
 
 	// Flightplan has SID
-	if (!sid_name.length())
+	if (!fullSidName.length())
 	{
 		returnValid["SEARCH"] = "Flight plan doesn't have SID set!";
 		returnValid["STATUS"] = "Failed";
@@ -169,25 +170,25 @@ void VFPCPlugin::validateSid(
 		return;
 	}
 
-	if (sid_name == "DIFT")
+	if (fullSidName == "DIFT")
 	{
 		returnValid["SEARCH"] = "DIFT Set, not checking the flight plan!";
 		returnValid["STATUS"] = "Passed";
 		return;
 	}
 
-	string first_wp = sid_name.substr(0, sid_name.find_first_of("0123456789"));
-	if (0 != first_wp.length())
-		boost::to_upper(first_wp);
+	string sidName = fullSidName.substr(0, fullSidName.find_first_of("0123456789"));
+	if (0 != sidName.length())
+		boost::to_upper(sidName);
 	string sid_suffix;
-	if (first_wp.length() != sid_name.length())
+	if (sidName.length() != fullSidName.length())
 	{
-		sid_suffix = sid_name.substr(sid_name.find_first_of("0123456789"), sid_name.length());
+		sid_suffix = fullSidName.substr(fullSidName.find_first_of("0123456789"), fullSidName.length());
 		boost::to_upper(sid_suffix);
 	}
 
 	// Did not find a valid SID
-	if (sid_suffix.length() == 0 && "VCT" != first_wp)
+	if (sid_suffix.length() == 0 && "VCT" != sidName)
 	{
 		returnValid["SEARCH"] = "Flight plan doesn't have SID set!";
 		returnValid["STATUS"] = "Failed";
@@ -195,15 +196,9 @@ void VFPCPlugin::validateSid(
 		return;
 	}
 
-	std::string resolved_sid = first_wp;
+	std::string resolved_sid = sidName;
 
 	auto data = sidData;
-
-	// Check if SID needs to be mapped
-	if (data.contains("sid_mapping") && data["sid_mapping"].contains(first_wp))
-	{
-		resolved_sid = data["sid_mapping"][first_wp];
-	}
 
 	// Locate SID details for the given ICAO
 	const auto& sid_details = data["sid_details"];
@@ -223,17 +218,10 @@ void VFPCPlugin::validateSid(
 	}
 
 	const auto& sids = sid_entry->at("sids");
-	if (!sids.contains(resolved_sid))
-	{
-		returnValid["SEARCH"] = "Invalid SID, SID " + first_wp + " not listed for " + origin;
-		returnValid["STATUS"] = "Failed";
-		ctx.fail(ValidationCheck::SID_ERROR);
-		return;
-	}
 
-	returnValid["SID"] = resolved_sid;
+	returnValid["SID"] = sidName;
 
-	const auto& sid_def = sids[resolved_sid][0];
+	const auto& sid_def = sids[sidName][0];
 
 	// Check direction (ODD/EVEN)
 	if (sid_def.contains("direction"))
@@ -296,23 +284,46 @@ void VFPCPlugin::validateSid(
 	}
 
 	// Check airway requirement: only perform check if airway_required does not exist or is not set to false
-	// If the route is just 1 it's probably a route that goes within the EHAA FIR.
+	// The airway check should start after the mapped exit point (sid_mapping), not always at route_tokens[1]
 	if ((!sid_def.contains("airway_required") || sid_def["airway_required"] != false) && route_tokens.size() > 1)
 	{
-		// Very basic airway check: airway tokens are usually alphanumeric (e.g., "UL620", "N198")
-		string first_token = route_tokens[1];
-		bool looks_like_airway = std::any_of(first_token.begin(), first_token.end(), ::isalpha) &&
-			std::any_of(first_token.begin(), first_token.end(), ::isdigit);
-
-		if (!looks_like_airway)
-		{
-			returnValid["AIRWAYS"] = "Failed airway requirement after exit point, but '" + first_token + "' does not look like an airway";
-			returnValid["STATUS"] = "Failed";
-			ctx.fail(ValidationCheck::ROUTE_ERROR);
+		// Use the resolved SID name as the exit point, and if sid_mapping exists for it, use the mapped value
+		std::string exit_point = resolved_sid;
+		if (data.contains("sid_mapping") && data["sid_mapping"].contains(exit_point)) {
+			exit_point = data["sid_mapping"][exit_point].get<std::string>();
+			boost::to_upper(exit_point);
 		}
-		else
-		{
-			returnValid["AIRWAYS"] = "Passed airway requirement";
+
+		// Find the index of the exit point in the route tokens
+		int exit_idx = -1;
+		for (size_t i = 0; i < route_tokens.size(); ++i) {
+			if (route_tokens[i] == exit_point) {
+				exit_idx = static_cast<int>(i);
+				break;
+			}
+		}
+
+		debugMessage("Exit IDX is found at: " + to_string(exit_idx) + " for SID: " + sidName + ". SID potentially has different exit point which is: " + exit_point);
+
+		// If not found, fallback to route_tokens[1] as before
+		int airway_token_idx = (exit_idx != -1 && exit_idx + 1 < static_cast<int>(route_tokens.size())) ? exit_idx + 1 : 1;
+		if (airway_token_idx < static_cast<int>(route_tokens.size())) {
+			string airway_token = route_tokens[airway_token_idx];
+			bool looks_like_airway = std::any_of(airway_token.begin(), airway_token.end(), ::isalpha) &&
+				std::any_of(airway_token.begin(), airway_token.end(), ::isdigit);
+
+			if (!looks_like_airway)
+			{
+				returnValid["AIRWAYS"] = "Failed airway requirement after exit point, but '" + airway_token + "' does not look like an airway";
+				returnValid["STATUS"] = "Failed";
+				ctx.fail(ValidationCheck::ROUTE_ERROR);
+			}
+			else
+			{
+				returnValid["AIRWAYS"] = "Passed airway requirement";
+			}
+		} else {
+			returnValid["AIRWAYS"] = "Passed airway requirement (no airway token after exit point)";
 		}
 	}
 	else
@@ -322,7 +333,7 @@ void VFPCPlugin::validateSid(
 
 	// return "valid SID: SID checks passed";
 	if (debugMode){
-		logToFile("Last callsign: " + returnValid["CS"] + ", SID: " + sid_name + ", Origin: " + origin + ", Destination: " + destination + ". Attempting to search restrictions...");
+		logToFile("Last callsign: " + returnValid["CS"] + ", SID: " + fullSidName + ", Origin: " + origin + ", Destination: " + destination + ". Attempting to search restrictions...");
 	}
 }
 
@@ -753,9 +764,11 @@ void VFPCPlugin::OnTimer(int Counter)
 	// Loading proper Sids, when logged in
 	if (GetConnectionType() != CONNECTION_TYPE_NO && !initialSidLoad)
 	{
+		logToFile("Attempting to start!");
 		string callsign{ ControllerMyself().GetCallsign() };
 		sendMessage("Loading all SIDs...");
 		getSidData();
+		logToFile("Got all sid data loaded!");
 		initialSidLoad = true;
 	}
 	else if (GetConnectionType() == CONNECTION_TYPE_NO && initialSidLoad)
