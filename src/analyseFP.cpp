@@ -579,6 +579,7 @@ void VFPCPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarget, 
 	if (!FlightPlan.IsValid()) {
         *pRGB = TAG_GREY;
         strcpy_s(sItemString, 16, "-");
+		logToFile("Invalid flight plan found to check!");
         return;
     }
 
@@ -643,7 +644,9 @@ void VFPCPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarget, 
 // Removes aircraft when they disconnect
 void VFPCPlugin::OnFlightPlanDisconnect(CFlightPlan FlightPlan)
 {
-	if (!FlightPlan.IsValid()) return;
+	if (!FlightPlan.IsValid()){
+		logToFile("Invalid flight plan found to remove!");
+	} 
 	AircraftIgnore.erase(remove(AircraftIgnore.begin(), AircraftIgnore.end(), FlightPlan.GetCallsign()), AircraftIgnore.end());
 }
 
@@ -694,7 +697,7 @@ void VFPCPlugin::checkFPDetail()
 
 	CFlightPlan fp = FlightPlanSelectASEL();
     if (!fp.IsValid()) {
-        sendMessage("No valid flight plan selected.");
+        logToFile("No valid flight plan selected.");
         return;
     }
 
