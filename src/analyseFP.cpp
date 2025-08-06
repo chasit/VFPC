@@ -576,6 +576,12 @@ void VFPCPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarget, 
 
 	ValidationContext ctx;
 
+	if (!FlightPlan.IsValid()) {
+        *pRGB = TAG_GREY;
+        strcpy_s(sItemString, 16, "-");
+        return;
+    }
+
 	if (ItemCode == TAG_ITEM_FPCHECK)
 	{
 		if (strcmp(FlightPlan.GetFlightPlanData().GetPlanType(), "V") > -1)
@@ -637,6 +643,7 @@ void VFPCPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarget, 
 // Removes aircraft when they disconnect
 void VFPCPlugin::OnFlightPlanDisconnect(CFlightPlan FlightPlan)
 {
+	if (!FlightPlan.IsValid()) return;
 	AircraftIgnore.erase(remove(AircraftIgnore.begin(), AircraftIgnore.end(), FlightPlan.GetCallsign()), AircraftIgnore.end());
 }
 
@@ -685,8 +692,14 @@ void VFPCPlugin::checkFPDetail()
 	ValidationContext ctx;
 	map<string, string> messageBuffer;
 
-	validateSid(FlightPlanSelectASEL(), ctx, messageBuffer);
-	searchRestrictions(FlightPlanSelectASEL(), ctx, messageBuffer);
+	CFlightPlan fp = FlightPlanSelectASEL();
+    if (!fp.IsValid()) {
+        sendMessage("No valid flight plan selected.");
+        return;
+    }
+
+	validateSid(fp, ctx, messageBuffer);
+	searchRestrictions(fp, ctx, messageBuffer);
 
 	string buffer{};
 	if (!ctx.isValid())
