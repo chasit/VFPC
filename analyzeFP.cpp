@@ -602,6 +602,10 @@ map<string, string> CVFPCPlugin::validizeSid(CFlightPlan flightPlan)
 
 		debugMessage(returnValid["CS"] + " passed the airways checks");
 
+
+		// Check restrictions, we require a bit more route information here.
+		// This lists all the points part of the FP, even the ones routing over airways!
+
 		int total_points = flightPlan.GetExtractedRoute().GetPointsNumber();
 
 		vector<string> route_tokens;
