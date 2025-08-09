@@ -35,6 +35,8 @@ public:
 
 	virtual void getSids();
 
+	virtual map<string, string> checkRestrictions(const string& origin, const string& destination, int RFL, const vector<string>& route);
+
 	virtual map<string, string> validizeSid(CFlightPlan flightPlan);
 
 	virtual void OnFunctionCall(int FunctionId, const char* ItemString, POINT Pt, RECT Area);
@@ -49,19 +51,18 @@ public:
 		COLORREF* pRGB,
 		double* pFontSize);
 
-	template <typename Out>
-	void split(const string& s, char delim, Out result) {
-		istringstream iss(s);
-		string item;
-		while (getline(iss, item, delim)) {
-			*result++ = item;
+	std::vector<std::string> split(const std::string& s, char delimiter)
+	{
+		std::vector<std::string> tokens;
+		std::string token;
+		std::istringstream tokenStream(s);
+		while (std::getline(tokenStream, token, delimiter))
+		{
+			token.erase(remove_if(token.begin(), token.end(), ::isspace), token.end());
+			if (!token.empty())
+				tokens.push_back(token);
 		}
-	}
-
-	vector<string> split(const string& s, char delim) {
-		vector<string> elems;
-		split(s, delim, back_inserter(elems));
-		return elems;
+		return tokens;
 	}
 
 	string destArrayContains(const Value& a, string s) {
@@ -112,7 +113,7 @@ public:
 
 	virtual bool OnCompileCommand(const char* sCommandLine);
 
-	virtual void debugMessage(string type, string message);
+	virtual void debugMessage(string message);
 
 	virtual void sendMessage(string type, string message);
 
@@ -120,16 +121,20 @@ public:
 
 	virtual void checkFPDetail();
 
-	virtual pair<string, int> getFails(map<string, string> messageBuffer);
+	virtual string getFails(map<string, string> messageBuffer);
 
 	virtual void OnTimer(int Count);
 
 	virtual bool routeContainsAirways(CFlightPlan flightPlan, const Value& a);
 
+	virtual void logToFile(const std::string& message);
+
+
 protected:
 	Document config;
 	Value sid_details;
 	Value sid_mapping;
+	Value restrictions;
 	map<string, rapidjson::SizeType> airports;
 };
 

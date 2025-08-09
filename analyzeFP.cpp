@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "analyzeFP.hpp"
+#include <optional>
+#include <chrono>
 
 extern "C" IMAGE_DOS_HEADER __ImageBase;
 
@@ -8,7 +10,7 @@ bool debugMode, initialSidLoad;
 
 int disCount;
 
-const int checksAmount = 9;
+const int checksAmount = 4;
 
 ifstream sidDatei;
 char DllPathFile[_MAX_PATH];
@@ -41,10 +43,22 @@ CVFPCPlugin::CVFPCPlugin(void) :CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, MY_
 	GetModuleFileNameA(HINSTANCE(&__ImageBase), DllPathFile, sizeof(DllPathFile));
 	pfad = DllPathFile;
 	pfad.resize(pfad.size() - strlen("VFPC.dll"));
-	pfad += "Sid.json";
+	pfad += "Sids.json";
 
 	debugMode = false;
 	initialSidLoad = false;
+
+	// Remove the log file on plugin load
+	std::string logPath = DllPathFile;
+	size_t lastSlash = logPath.find_last_of("/\\");
+	if (lastSlash != std::string::npos)
+		logPath = logPath.substr(0, lastSlash + 1);
+	else
+		logPath = "";
+	logPath += "VFPC.log";
+	std::remove(logPath.c_str());
+	logToFile("Loaded the configuration!");
+
 }
 
 // Run on Plugin destruction, Ie. Closing EuroScope or unloading plugin
@@ -57,10 +71,45 @@ CVFPCPlugin::~CVFPCPlugin()
 	Custom Functions
 */
 
-void CVFPCPlugin::debugMessage(string type, string message) {
+// Logs a message to a file in the same folder as the DLL
+void CVFPCPlugin::logToFile(const std::string& message)
+{
+	// Get the DLL directory from DllPathFile (already set at startup)
+	std::string logPath = DllPathFile;
+	size_t lastSlash = logPath.find_last_of("/\\");
+	if (lastSlash != std::string::npos)
+	{
+		logPath = logPath.substr(0, lastSlash + 1);
+	}
+	else
+	{
+		logPath = "";
+	}
+	logPath += "VFPC.log";
+
+	// Get current time
+	auto now = std::chrono::system_clock::now();
+	auto in_time_t = std::chrono::system_clock::to_time_t(now);
+	std::tm buf;
+#ifdef _WIN32
+	localtime_s(&buf, &in_time_t);
+#else
+	localtime_r(&in_time_t, &buf);
+#endif
+	char timeStr[32];
+	std::strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", &buf);
+
+	std::ofstream logfile(logPath, std::ios_base::app);
+	if (logfile.is_open())
+	{
+		logfile << "[" << timeStr << "] " << "Debug: " << message << std::endl;
+	}
+}
+
+void CVFPCPlugin::debugMessage(string message) {
 	// Display Debug Message if debugMode = true
 	if (debugMode) {
-		DisplayUserMessage("VFPC", type.c_str(), message.c_str(), true, true, true, false, false);
+		DisplayUserMessage("VFPC", "Debug", message.c_str(), true, true, true, false, false);
 	}
 }
 
@@ -88,18 +137,189 @@ void CVFPCPlugin::getSids() {
 		config.Parse<0>("[{\"icao\": \"XXXX\"}]");
 	}
 
-	sid_mapping = config["sid_mapping"];
+	if (config.HasMember("sid_mapping")) sid_mapping = config["sid_mapping"];
+	if (config.HasMember("sid_details")) sid_details = config["sid_details"];
+	if (config.HasMember("restrictions")) restrictions = config["restrictions"];
 
-	sid_details = config["sid_details"];
 
 	airports.clear();
-
+	logToFile("Sid details size: " + to_string(sid_details.Size()));
 	for (SizeType i = 0; i < sid_details.Size(); i++) {
+		string t = sid_details[i]["icao"].GetString();
+		logToFile("airport: " + t);
 		const Value& airport = sid_details[i];
-		string airport_icao = airport["icao"].GetString();
-
-		airports.insert(pair<string, SizeType>(airport_icao, i));
+		if (airport.HasMember("icao") && airport["icao"].IsString()) {
+			string airport_icao = airport["icao"].GetString();
+			airports.insert(pair<string, SizeType>(airport_icao, i));
+		}
 	}
+}
+
+map<string, string> CVFPCPlugin::checkRestrictions(const string& origin, const string& destination, int RFL, const vector<string>& route_tokens) {
+	map<string, string> returnItems;
+
+	bool has_failed = false;
+
+	if (!restrictions.IsArray()) {
+		returnItems["STATUS"] = "Passed!";
+	}
+
+	for (SizeType i = 0; i < restrictions.Size(); i++) {
+		const Value& restriction = restrictions[i];
+
+		if (!restriction.HasMember("from") || !restriction["from"].IsArray()) continue;
+
+		// Check departure match
+		bool originMatch = false;
+		for (SizeType j = 0; j < restriction["from"].Size(); j++) {
+			if (origin == restriction["from"][j].GetString()) {
+				originMatch = true;
+				break;
+			}
+		}
+		if (!originMatch) continue;
+
+		// Check forbidden_fls
+		if (restriction.HasMember("forbidden_fls") && restriction["forbidden_fls"].IsArray()) {
+			for (SizeType f = 0; f < restriction["forbidden_fls"].Size(); f++) {
+				if ((RFL / 100) == restriction["forbidden_fls"][f].GetInt()) {
+					returnItems["FORBIDDEN_FL"] = "Failed: Forbidden FL " + to_string(restriction["forbidden_fls"][f].GetInt());
+					has_failed = true;
+					// return "Failed: Forbidden FL " + to_string(restriction["forbidden_fls"][f].GetInt());
+				}
+			}
+		}
+
+		// No routes = nothing else to check
+		if (!restriction.HasMember("routes") || !restriction["routes"].IsArray()) continue;
+
+		std::optional<int> min_capping;
+
+		for (SizeType r = 0; r < restriction["routes"].Size(); r++) {
+			const Value& routeRule = restriction["routes"][r];
+
+			// Destination match
+			if (!routeRule.HasMember("destinations") || !routeRule["destinations"].IsArray()) continue;
+			bool destMatch = false;
+			for (SizeType d = 0; d < routeRule["destinations"].Size(); d++) {
+				string pattern = routeRule["destinations"][d].GetString();
+				if (pattern.find('*') != string::npos) {
+					string base = pattern.substr(0, pattern.find('*'));
+					if (destination.rfind(base, 0) == 0) destMatch = true;
+				}
+				else if (destination == pattern) {
+					destMatch = true;
+				}
+			}
+			if (!destMatch) continue;
+
+			// Condition check
+			string condition = routeRule.HasMember("condition") && routeRule["condition"].IsString()
+				? routeRule["condition"].GetString()
+				: "";
+			bool condition_matched = false;
+
+			if (condition.empty()) {
+				condition_matched = true;
+			}
+			else if (condition.rfind("VIA ", 0) == 0 && condition.rfind("NOT VIA", 0) != 0) {
+				string via_str = condition.substr(4);
+				auto via_points = split(via_str, ',');
+				for (auto& p : via_points) {
+					boost::trim(p);
+					if (std::find(route_tokens.begin(), route_tokens.end(), p) != route_tokens.end()) {
+						condition_matched = true;
+						break;
+					}
+				}
+
+				if (!condition_matched) {
+					// Fallback to NOT VIA rules inside same restriction
+					for (SizeType fb = 0; fb < restriction["routes"].Size(); fb++) {
+						const Value& fallback = restriction["routes"][fb];
+						if (!fallback.HasMember("condition") || !fallback["condition"].IsString()) continue;
+						string fb_cond = fallback["condition"].GetString();
+
+						if (fb_cond.rfind("NOT VIA ", 0) == 0) {
+							string not_via_str = fb_cond.substr(8);
+							auto not_via_points = split(not_via_str, ',');
+							bool found = false;
+							for (auto& np : not_via_points) {
+								boost::trim(np);
+								if (std::find(route_tokens.begin(), route_tokens.end(), np) != route_tokens.end()) {
+									found = true;
+									break;
+								}
+							}
+							if (!found) {
+								if (fallback.HasMember("fl_capping") && fallback["fl_capping"].IsInt()) {
+									int cap = fallback["fl_capping"].GetInt();
+									if (!min_capping.has_value() || cap < min_capping.value()) {
+										min_capping = cap;
+									}
+									else {
+										returnItems["FL_CAP"] = "Passed FL cap";
+									}
+
+								}
+								else {
+									returnItems["FL_CAP"] = "Passed FL cap";
+									// return "Passed";
+								}
+							}
+						}
+					}
+					continue; // Skip rest of VIA rule
+				}
+			}
+			else if (condition.rfind("NOT VIA ", 0) == 0) {
+				string not_via_str = condition.substr(8);
+				auto not_via_points = split(not_via_str, ',');
+				bool found = false;
+				for (auto& p : not_via_points) {
+					boost::trim(p);
+					if (std::find(route_tokens.begin(), route_tokens.end(), p) != route_tokens.end()) {
+						found = true;
+						break;
+					}
+				}
+				if (!found) condition_matched = true;
+			}
+
+			// Apply FL capping if matched
+			if (condition_matched && routeRule.HasMember("fl_capping") && routeRule["fl_capping"].IsInt()) {
+				int cap = routeRule["fl_capping"].GetInt();
+				if (!min_capping.has_value() || cap < min_capping.value()) {
+					min_capping = cap;
+				}
+
+			}
+			else if (condition_matched && !routeRule.HasMember("fl_capping")) {
+				returnItems["FL_CAP"] = "Passed FL cap";
+			}
+		}
+
+		// Final FL check
+		if (min_capping.has_value() && (RFL / 100) > min_capping.value()) {
+			returnItems["FL_CAP"] = "Failed: FL above cap (" + to_string(min_capping.value()) + ")";
+			has_failed = true;
+
+
+			// return "Failed: FL above cap (" + to_string(min_capping.value()) + ")";
+		}
+		else {
+			returnItems["FL_CAP"] = "Passed FL cap (below " + std::to_string(min_capping.value()) + ")";
+		}
+	}
+
+	if (!has_failed) {
+		returnItems["STATUS"] = "Passed!";
+		returnItems["RESTRICTIONS"] = "No route restrictions found";
+	}
+	else {
+		returnItems["STATUS"] = "Failed!";
+	}
+	return returnItems;
 }
 
 // Does the checking and magic stuff, so everything will be alright, when this is finished! Or not. Who knows?
@@ -125,10 +345,13 @@ map<string, string> CVFPCPlugin::validizeSid(CFlightPlan flightPlan) {
 	returnValid["STATUS"] = "Passed";
 	bool valid{ false };
 
-	string origin = flightPlan.GetFlightPlanData().GetOrigin(); boost::to_upper(origin);
-	string destination = flightPlan.GetFlightPlanData().GetDestination(); boost::to_upper(destination);
+	string origin = flightPlan.GetFlightPlanData().GetOrigin();
+	boost::to_upper(origin);
+	string destination = flightPlan.GetFlightPlanData().GetDestination();
+	boost::to_upper(destination);
 	SizeType origin_int;
 	int RFL = flightPlan.GetFlightPlanData().GetFinalAltitude();
+	int requestedFlightLevel = RFL / 1000;
 
 	vector<string> route = split(flightPlan.GetFlightPlanData().GetRoute(), ' ');
 	for (std::size_t i = 0; i < route.size(); i++) {
@@ -138,73 +361,63 @@ map<string, string> CVFPCPlugin::validizeSid(CFlightPlan flightPlan) {
 	if (strcmp(flightPlan.GetFlightPlanData().GetPlanType(), "V") > -1) {
 		returnValid["SEARCH"] = "VFR Flight, no SID required!";
 		returnValid["STATUS"] = "Passed";
+		logToFile("First");
 		return returnValid;
 	}
 
-	string sid = flightPlan.GetFlightPlanData().GetSidName(); boost::to_upper(sid);
+	string fullSidName = flightPlan.GetFlightPlanData().GetSidName();
+	boost::to_upper(fullSidName);
 
 	// Flightplan has SID
-	if (!sid.length()) {
+	if (!fullSidName.length()) {
 		returnValid["SEARCH"] = "Flightplan doesn't have SID set!";
 		returnValid["STATUS"] = "Failed";
+		logToFile("Second");
+		logToFile(flightPlan.GetFlightPlanData().GetSidName());
+
 		return returnValid;
 	}
 
-	if (sid == "DIFT") {
+	if (fullSidName == "DIFT") {
 		returnValid["SEARCH"] = "DIFT Set, not checking the flightplan!";
 		returnValid["STATUS"] = "Passed";
+		logToFile("3");
+
 		return returnValid;
 	}
 
-	string first_wp = sid.substr(0, sid.find_first_of("0123456789"));
-	if (0 != first_wp.length())
-		boost::to_upper(first_wp);
-	string sid_suffix;
-	if (first_wp.length() != sid.length()) {
-		sid_suffix = sid.substr(sid.find_first_of("0123456789"), sid.length());
+	string sidName = fullSidName.substr(0, fullSidName.find_first_of("0123456789")); // This is VALKO in VALKO3S
+	if (sidName.length() != 0)
+		boost::to_upper(sidName);
+	string sid_suffix; // This is 3S in VALKO3S for example
+	if (sidName.length() != fullSidName.length()) {
+		sid_suffix = fullSidName.substr(fullSidName.find_first_of("0123456789"), fullSidName.length());
 		boost::to_upper(sid_suffix);
 	}
 
+	logToFile("SID Set for callsign: " + returnValid["CS"] + " is: " + fullSidName + ". The sidname is: " + sidName);
+
 	// Did not find a valid SID
-	if (sid_suffix.length() == 0 && "VCT" != first_wp) {
-		returnValid["SEARCH"] = "Flightplan doesn't have SID set!";
+	if (sid_suffix.length() == 0 && "VCT" != sidName) {
+		returnValid["SID_ERR"] = "Flightplan doesn't have SID set!";
 		returnValid["STATUS"] = "Failed";
+		logToFile("4");
+
 		return returnValid;
 	}
 
-	string first_airway;
-
-	string first_pt;
-
-	string assigned_sid = first_wp;
-
-
-	if (sid_mapping.HasMember(first_wp.c_str())) {
-		string temp = sid_mapping[first_wp.c_str()].GetString();
-		first_wp = temp;
-	}
-
-	vector<string>::iterator it = find(route.begin(), route.end(), first_wp);
-	if (it != route.end() && (it - route.begin()) != route.size() - 1) {
-		first_airway = route[(it - route.begin()) + 1];
-
-		first_pt = route[0];
-
-		boost::to_upper(first_airway);
-	}
-
-	// If the route contains only one waypoint, it's probably a route that goes within the EHAA FIR.
-	// Therefore the SID is probably OK to verify.
-	if (route.size() != 1 && (first_airway.empty() || first_pt.empty())) {
-		returnValid["SEARCH"] = "Could not determine routing to check! DEBUG LOG! >> First Airway: " + first_airway + ", First Pt: " + first_pt + ", First waypoint: " + first_wp + ", ROUTE LEN: " + std::to_string(route.size());
-		returnValid["STATUS"] = "Failed";
-		return returnValid;
+	std::string exit_point = sidName;
+	if (sid_mapping.HasMember(sidName.c_str())) {
+		exit_point = sid_mapping[sidName.c_str()].GetString();
+		boost::to_upper(exit_point);
 	}
 
 	// Airport defined
 	if (airports.find(origin) == airports.end()) {
 		returnValid["SEARCH"] = "No valid Airport found!";
 		returnValid["STATUS"] = "Failed";
+		logToFile("5");
+
 		return returnValid;
 	}
 	else
@@ -212,252 +425,144 @@ map<string, string> CVFPCPlugin::validizeSid(CFlightPlan flightPlan) {
 
 	// Any SIDs defined
 	if (!sid_details[origin_int].HasMember("sids") || sid_details[origin_int]["sids"].IsArray()) {
-		returnValid["SEARCH"] = "No SIDs defined!";
+		returnValid["SID_ERR"] = "No SIDs defined!";
 		returnValid["STATUS"] = "Failed";
+		logToFile("6");
+
 		return returnValid;
 	}
 
 	// Needed SID defined
-	if (!sid_details[origin_int]["sids"].HasMember(assigned_sid.c_str()) || !sid_details[origin_int]["sids"][assigned_sid.c_str()].IsArray()) {
-		returnValid["SEARCH"] = "No valid SID found!";
+	if (!sid_details[origin_int]["sids"].HasMember(sidName.c_str()) || !sid_details[origin_int]["sids"][sidName.c_str()].IsArray()) {
+		returnValid["SID_ERR"] = "No valid SID found!";
 		returnValid["STATUS"] = "Failed";
+		logToFile("7");
 		return returnValid;
 	}
 
-	const Value& conditions = sid_details[origin_int]["sids"][assigned_sid.c_str()];
+	logToFile(returnValid["CS"] + " passed the initial checks");
+
+	const Value& conditions = sid_details[origin_int]["sids"][sidName.c_str()];
 	for (SizeType i = 0; i < conditions.Size(); i++) {
 		returnValid.clear();
+		returnValid["SID"] = fullSidName;
+
 		returnValid["CS"] = flightPlan.GetCallsign();
 		bool passed[checksAmount]{ false };
 		valid = false;
 
-		bool airway_rqrd = true;
 
-		if (conditions[i]["airway_required"].Size()) {
-			string required_airway = conditions[i]["airway_required"].GetString();
-			if (required_airway == "NO" || required_airway == "FALSE") {
-				airway_rqrd = false;
+		if (conditions[i].HasMember("direction") && conditions[i]["direction"].IsString()) {
+			string direction = conditions[i]["direction"].GetString();
+			bool is_even = (requestedFlightLevel % 2 == 0);
+
+			if ((direction == "ODD" && is_even) || (direction == "EVEN" && !is_even))
+			{
+				returnValid["DIRECTION"] = "Failed " + direction;
 			}
-		}
-
-		// Skip SID if the check is suffix-related
-		if (conditions[i]["suffix"].IsString() && conditions[i]["suffix"].GetString() != sid_suffix) {
-			continue;
-		}
-
-		// Does Condition contain our destination if it's limited
-		if (conditions[i]["destinations"].IsArray() && conditions[i]["destinations"].Size()) {
-			string dest;
-			if ((dest = destArrayContains(conditions[i]["destinations"], destination.c_str())).size()) {
-				if (dest.size() < 4)
-					dest += string(4 - dest.size(), '*');
-				returnValid["DESTINATION"] = "Passed Destination (" + dest + ")";
+			else {
+				returnValid["DIRECTION"] = "Passed " + direction;
 				passed[0] = true;
 			}
-			else {
-				continue;
-			}
 		}
 		else {
-			returnValid["DESTINATION"] = "No Destination restr";
+			returnValid["DIRECTION"] = "No direction restraint";
 			passed[0] = true;
+
 		}
 
-		// Does Condition contain our first airway if it's limited
-		if (conditions[i]["airways"].IsArray() && conditions[i]["airways"].Size()) {
-			string rte = flightPlan.GetFlightPlanData().GetRoute();
-			auto test = flightPlan.GetExtractedRoute().GetPointsNumber();
-			if (routeContainsAirways(flightPlan, conditions[i]["airways"])) {
-				returnValid["AIRWAYS"] = "Passed Airways";
+		if(conditions[i].HasMember("max_fl") && conditions[i]["max_fl"].IsInt()) {
+			int max_fl = conditions[i]["max_fl"].GetInt();
+			if ((requestedFlightLevel*10) > max_fl)
+			{
+				returnValid["MAX_FL"] = "Failed max FL for SID (above " + std::to_string(max_fl) + ")";
+			}
+			else
+			{
+				returnValid["MAX_FL"] = "Passed max FL for SID (below " + std::to_string(max_fl) + ")";
 				passed[1] = true;
-			}
-			else {
-				// The airway names, one of which needs to be present
-				string waypoints;
-				for (SizeType j = 0; j < conditions[i]["airways"].Size(); j++) {
-					string waypoint = conditions[i]["airways"][j].GetString();
-					if (conditions[i]["airways"].Size() > j + 1) {
-						waypoint += ", ";
-					}
-					waypoints.append(waypoint);
-				}
-				auto pos = waypoints.find_last_of(",");
-				if (pos != -1)
-					waypoints.replace(pos, 1, " or");
-
-				returnValid["AIRWAYS"] = "Failed Airways. FP not routing via " + waypoints;
 
 			}
 		}
-		else {
-			returnValid["AIRWAYS"] = "No Airway restr";
+		else{
+			returnValid["MAX_FL"] = "No max FL restraint";
 			passed[1] = true;
 		}
 
-		// Regex for an airway according to ICAO Annex 11 Appendix 1 (https://ffac.ch/wp-content/uploads/2020/10/ICAO-Annex-11-Air-Traffic-Services.pdf)
-		// Also see https://aviation.stackexchange.com/a/59784
-		std::regex reg(R"([A-Z]{1,2}\d{1,3})");
+		if (conditions[i].HasMember("destinations") && conditions[i]["destinations"].IsArray() && !conditions[i]["destinations"].Empty())
+		{
+			const auto& destinations = conditions[i]["destinations"];
 
-		bool found_airway{
-		std::regex_match(first_airway, reg) };
+				bool destination_found = destArrayContains(destinations, destination) != "";
 
-		if (airway_rqrd && (first_airway == "DCT" || !found_airway)) {
-			returnValid["SID_DCT"] = "Failed: Flightplan contains a DCT after the SID!";
-		}
-		else {
-			if (!airway_rqrd) {
-				returnValid["SID_DCT"] = "No airway required after SID";
-			}
-			else
-			{
-				returnValid["SID_DCT"] = "No DCT after SID";
-			}
-			passed[8] = true;
-		}
+				if (!destination_found)
+				{
+					returnValid["DESTINATION"] = "Failed SID not valid for destination " + destination;
+				}
+				else
+				{
+					returnValid["DESTINATION"] = "Passed SID valid for destination " + destination;
+					passed[2] = true;
+				}
 
-		returnValid["DEBUG_AIRWAY_CHK"] = first_airway;
-		returnValid["DEBUG_AIRWAY_CHK2"] = first_wp;
-		returnValid["DEBUG_AIRWAY_CHK3"] = first_pt;
-		returnValid["DEBUG_AIRWAY_CHK4"] = std::to_string(found_airway);
-		//returnValid["AIRWAY_CHK3"] = route[0];
-
-		// Is Engine Type if it's limited (P=piston, T=turboprop, J=jet, E=electric)
-		if (conditions[i]["engine"].IsString()) {
-			if (conditions[i]["engine"].GetString()[0] == flightPlan.GetFlightPlanData().GetEngineType()) {
-				returnValid["ENGINE"] = "Passed Engine type (" + (string)conditions[i]["engine"].GetString() + ')';
-				passed[2] = true;
-			}
-			else {
-				returnValid["ENGINE"] = "Failed Engine type. Needed: " + (string)conditions[i]["engine"].GetString();
-			}
 		}
-		else if (conditions[i]["engine"].IsArray() && conditions[i]["engine"].Size()) {
-			if (arrayContains(conditions[i]["engine"], flightPlan.GetFlightPlanData().GetEngineType())) {
-				returnValid["ENGINE"] = "Passed Engine type (" + arrayToString(conditions[i]["engine"], ',') + ")";
-				passed[2] = true;
-			}
-			else {
-				returnValid["ENGINE"] = "Failed Engine type. Needed: " + arrayToString(conditions[i]["engine"], ',');
-			}
-		}
-		else {
-			returnValid["ENGINE"] = "No Engine type restr";
+		else
+		{
+			returnValid["DESTINATION"] = "No destination restraint";
 			passed[2] = true;
 		}
 
+		// Check airway requirement: only perform check if airway_required does not exist or is not set to false
+		// The airway check should start after the mapped exit point (sid_mapping), not always at route[1]
+		if (!conditions[i].HasMember("airway_required"))
+		{
+			if (conditions[i]["airway_required"].GetBool() != false && route.size() > 1) {
 
-		valid = true;
-		returnValid["SID"] = assigned_sid;
+			// Find the index of the exit point in the route tokens
+			int exit_idx = -1;
+			for (size_t i = 0; i < route.size(); ++i) {
+				if (route[i] == exit_point) {
+					exit_idx = static_cast<int>(i);
+					break;
+				}
+			}
 
-		// Direction of condition (EVEN, ODD, ANY)
-		string direction = conditions[i]["direction"].GetString();
-		boost::to_upper(direction);
+			debugMessage("Exit IDX is found at: " + to_string(exit_idx) + " for SID: " + sidName + ". SID potentially has different exit point which is: " + exit_point);
 
-		if (direction == "EVEN") {
-			if ((RFL / 1000) % 2 == 0) {
-				returnValid["DIRECTION"] = "Passed Even";
+			// If not found, fallback to route[1] as before
+			int airway_token_idx = (exit_idx != -1 && exit_idx + 1 < static_cast<int>(route.size())) ? exit_idx + 1 : 1;
+			if (airway_token_idx < static_cast<int>(route.size())) {
+				string airway_token = route[airway_token_idx];
+				bool looks_like_airway = std::any_of(airway_token.begin(), airway_token.end(), ::isalpha) &&
+					std::any_of(airway_token.begin(), airway_token.end(), ::isdigit);
+
+				if (!looks_like_airway)
+				{
+					returnValid["AIRWAYS"] = "Failed airway requirement after exit point, but '" + airway_token + "' does not look like an airway";
+					returnValid["STATUS"] = "Failed";
+				}
+				else
+				{
+					returnValid["AIRWAYS"] = "Passed airway requirement";
+					passed[3] = true;
+				}
+			} else {
+				returnValid["AIRWAYS"] = "Passed airway requirement (no airway token after exit point)";
 				passed[3] = true;
 			}
-			else {
-				returnValid["DIRECTION"] = "Failed Even";
 			}
 		}
-		else if (direction == "ODD") {
-			if ((RFL / 1000) % 2 != 0) {
-				returnValid["DIRECTION"] = "Passed Odd";
-				passed[3] = true;
-			}
-			else {
-				returnValid["DIRECTION"] = "Failed Odd";
-			}
-		}
-		else if (direction == "ANY") {
-			returnValid["DIRECTION"] = "No Direction restr";
+		else
+		{
+			returnValid["AIRWAYS"] = "Passed airway requirement";
 			passed[3] = true;
 		}
-		else {
-			string errorText{ "Config Error for Even/Odd on SID: " };
-			errorText += assigned_sid;
-			sendMessage("Error", errorText);
-			returnValid["DIRECTION"] = "Config Error for Even/Odd on this SID!";
-		}
 
-		// Flight level (min_fl, max_fl)
-		int min_fl, max_fl;
-		if (conditions[i].HasMember("min_fl") && (min_fl = conditions[i]["min_fl"].GetInt()) > 0) {
-			if ((RFL / 100) >= min_fl) {
-				returnValid["MIN_FL"] = "Passed Minimum FL (" + to_string(conditions[i]["min_fl"].GetInt()) + ')';
-				passed[4] = true;
-			}
-			else {
-				returnValid["MIN_FL"] = "Failed Minimum FL. Min FL: " + to_string(min_fl);
-			}
-		}
-		else {
-			returnValid["MIN_FL"] = "No Minimum FL";
+		map<string, string> restrResults = checkRestrictions(origin, destination, RFL, route);
+		returnValid.insert(restrResults.begin(), restrResults.end());
+
+		if (restrResults["STATUS"].rfind("Passed", 0) == 0) {
 			passed[4] = true;
-		}
-
-		if (conditions[i].HasMember("max_fl") && (max_fl = conditions[i]["max_fl"].GetInt()) > 0) {
-			if ((RFL / 100) <= max_fl) {
-				returnValid["MAX_FL"] = "Passed Maximum FL (" + to_string(conditions[i]["max_fl"].GetInt()) + ')';
-				passed[5] = true;
-			}
-			else {
-				returnValid["MAX_FL"] = "Failed Maximum FL. Max FL: " + to_string(max_fl);
-			}
-		}
-		else {
-			returnValid["MAX_FL"] = "No Maximum FL";
-			passed[5] = true;
-		}
-
-		// Flight level (forbidden)
-		// Does Condition contain our first airway if it's limited
-		bool has_fl250 = false;
-		if (to_string(RFL / 100) == "250") {
-			has_fl250 = true;
-		}
-
-		if (conditions[i]["forbidden_fls"].IsArray() && conditions[i]["forbidden_fls"].Size()) {
-			if (routeContains(to_string(RFL / 100), conditions[i]["forbidden_fls"])) {
-				returnValid["FORBIDDEN_FL"] = "Failed forbidden FLs. Forbidden FL: " + to_string(RFL / 100);
-			}
-			else if(has_fl250){
-				returnValid["FORBIDDEN_FL"] = "Failed forbidden FLs. Forbidden FL: 250";
-
-			}
-			else {
-				returnValid["FORBIDDEN_FL"] = "Passed forbidden FLs";
-				passed[6] = true;
-			}
-		}
-		else {
-			if (has_fl250) {
-				returnValid["FORBIDDEN_FL"] = "Failed forbidden FLs. Forbidden FL: 250";
-			}
-			else
-			{
-				returnValid["FORBIDDEN_FL"] = "No forbidden FL";
-				passed[6] = true;
-			}
-		}
-
-		// Special navigation requirements needed
-		if (conditions[i]["navigation"].IsString()) {
-			string navigation_constraints(conditions[i]["navigation"].GetString());
-			if (string::npos == navigation_constraints.find_first_of(flightPlan.GetFlightPlanData().GetCapibilities())) {
-				returnValid["NAVIGATION"] = "Failed navigation capability restr. Needed: " + navigation_constraints;
-				passed[7] = false;
-			}
-			else {
-				returnValid["NAVIGATION"] = "No navigation capability restr";
-				passed[7] = true;
-			}
-		}
-		else {
-			returnValid["NAVIGATION"] = "No navigation capability restr";
-			passed[7] = true;
 		}
 
 		bool passedVeri{ false };
@@ -484,11 +589,6 @@ map<string, string> CVFPCPlugin::validizeSid(CFlightPlan flightPlan) {
 				break;
 		}
 
-	}
-
-	if (!valid) {
-		returnValid["SID"] = "No valid SID found!";
-		returnValid["STATUS"] = "Failed";
 	}
 	return returnValid;
 }
@@ -542,12 +642,13 @@ void CVFPCPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarget,
 			}
 			else {
 				string code; int count;
-				tie(code, count) = getFails(messageBuffer);
+				code = getFails(messageBuffer);
 
-				if (messageBuffer["FORBIDDEN_FL"].find_first_of("Failed") == 0 && count == 1)
-					*pRGB = TAG_YELLOW;
-				else
-					*pRGB = TAG_RED;
+				// if (messageBuffer["FORBIDDEN_FL"].find_first_of("Failed") == 0 && count == 1)
+				// 	*pRGB = TAG_YELLOW;
+				// else
+				*pRGB = TAG_RED;
+				logToFile(code);
 				strcpy_s(sItemString, 16, code.c_str());
 			}
 
@@ -562,8 +663,8 @@ void CVFPCPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarget,
 			*pRGB = TAG_RED;
 
 			if (ItemCode == TAG_ITEM_FPCHECK_IF_FAILED) {
-				string code; int count;
-				tie(code, count) = getFails(messageBuffer);
+				string code;
+				code = getFails(messageBuffer);
 				strcpy_s(sItemString, 16, code.c_str());
 			}
 			else
@@ -592,12 +693,12 @@ bool CVFPCPlugin::OnCompileCommand(const char* sCommandLine) {
 	}
 	if (startsWith(".vfpc debug", sCommandLine)) {
 		if (debugMode) {
-			debugMessage("DebugMode", "Deactivating Debug Mode!");
+			debugMessage("Deactivating Debug Mode!");
 			debugMode = false;
 		}
 		else {
 			debugMode = true;
-			debugMessage("DebugMode", "Activating Debug Mode!");
+			debugMessage("Activating Debug Mode!");
 		}
 		return true;
 	}
@@ -620,6 +721,11 @@ bool CVFPCPlugin::OnCompileCommand(const char* sCommandLine) {
 void CVFPCPlugin::checkFPDetail() {
 	map<string, string> messageBuffer = validizeSid(FlightPlanSelectASEL());
 	string buffer{};
+
+	logToFile("Messge buff len: " + to_string(messageBuffer.size()));
+	logToFile("SID IS SET AS: " + messageBuffer["SID"]);
+
+
 	if (messageBuffer.find("SEARCH") == messageBuffer.end()) {
 		buffer += messageBuffer["STATUS"] + " SID " + messageBuffer["SID"] + ": ";
 
@@ -638,60 +744,49 @@ void CVFPCPlugin::checkFPDetail() {
 	}
 
 	sendMessage(messageBuffer["CS"], buffer);
-	debugMessage(messageBuffer["CS"], 
-		("First point (or airway) after the SID: " + messageBuffer["DEBUG_AIRWAY_CHK"] + 
-		", First waypoint (can differ from first fix): " + messageBuffer["DEBUG_AIRWAY_CHK2"] + ", First fix: " + 
-		messageBuffer["DEBUG_AIRWAY_CHK3"] + ". Result Regex: " + messageBuffer["DEBUG_AIRWAY_CHK4"])
-	);
+	// debugMessage( 
+	// 	(messageBuffer["CS"] + " First point (or airway) after the SID: " + messageBuffer["DEBUG_AIRWAY_CHK"] + 
+	// 	", First waypoint (can differ from first fix): " + messageBuffer["DEBUG_AIRWAY_CHK2"] + ", First fix: " + 
+	// 	messageBuffer["DEBUG_AIRWAY_CHK3"] + ". Result Regex: " + messageBuffer["DEBUG_AIRWAY_CHK4"])
+	// );
 
 }
 
-pair<string, int> CVFPCPlugin::getFails(map<string, string> messageBuffer) {
+string CVFPCPlugin::getFails(map<string, string> messageBuffer) {
 	vector<string> fails;
-	int failCount = 0;
+	logToFile("Attempting fails");
+	// if (messageBuffer.find("STATUS") != messageBuffer.end()) {
+	// 	fails.push_back("SID");
+	// }
 
-	fails.push_back("FPL");
+	if (messageBuffer.find("STATUS") != messageBuffer.end() || messageBuffer["SID_ERR"].find_first_of("Failed") == 0) {
 
-	if (messageBuffer.find("STATUS") != messageBuffer.end()) {
+		logToFile("SID ERR");
 		fails.push_back("SID");
 	}
-	if (messageBuffer["DESTINATION"].find_first_of("Failed") == 0) {
-		fails.push_back("DST");
-	}
-	if (messageBuffer["AIRWAYS"].find_first_of("Failed") == 0) {
-		fails.push_back("AWY");
-	}
-	if (messageBuffer["ENGINE"].find_first_of("Failed") == 0) {
-		fails.push_back("ENG");
-	}
-	if (messageBuffer["DIRECTION"].find_first_of("Failed") == 0) {
-		fails.push_back("E/O");
-		failCount++;
-	}
-	if (messageBuffer["MIN_FL"].find_first_of("Failed") == 0) {
-		fails.push_back("MIN");
-		failCount++;
-	}
-	if (messageBuffer["MAX_FL"].find_first_of("Failed") == 0) {
-		fails.push_back("MAX");
-		failCount++;
-	}
-	if (messageBuffer["FORBIDDEN_FL"].find_first_of("Failed") == 0) {
-		fails.push_back("FLR");
-		failCount++;
-	}
-	if (messageBuffer["NAVIGATION"].find_first_of("Failed") == 0) {
-		fails.push_back("NAV");
-		failCount++;
-	}
-	if (messageBuffer["SID_DCT"].find_first_of("Failed") == 0) {
-		fails.push_back("DCT");
+
+	if (messageBuffer["ROUTE"].find_first_of("Failed") == 0 || messageBuffer["AIRWAYS"].find_first_of("Failed") == 0) {
+		logToFile("RTE");
+		fails.push_back("RTE");
 	}
 
-	std::size_t couldnt = disCount;
-	while (couldnt >= fails.size())
-		couldnt -= fails.size();
-	return pair<string, int>(fails[couldnt], failCount);
+	if (messageBuffer["FL"].find_first_of("Failed") == 0 || messageBuffer["MAX_FL"].find_first_of("Failed") == 0 || messageBuffer["MIN_FL"].find_first_of("Failed") == 0 || messageBuffer["FORBIDDEN_FL"].find_first_of("Failed") == 0 || messageBuffer["FL_CAP"].find_first_of("Failed") == 0 || messageBuffer["DIRECTION"].find_first_of("Failed") == 0) {
+		logToFile("FL");
+		fails.push_back("FL");
+	}
+
+
+	logToFile("while");
+	logToFile("couldnt: " + to_string(disCount));
+	logToFile("fails.size(): " + to_string(fails.size()));
+
+	std::size_t failures = fails.empty() ? 0 : disCount % fails.size();
+	logToFile("Failures: " + to_string(failures));
+	return fails[failures];
+
+
+	// logToFile("finished while, failcount: " + to_string(failCount) + ". Fails: " + fails[couldnt]);
+	// return pair<string, int>(fails[couldnt], failCount);
 }
 
 void CVFPCPlugin::OnTimer(int Counter) {
