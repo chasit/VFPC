@@ -26,12 +26,12 @@ using namespace boost;
 using namespace rapidjson;
 using namespace EuroScopePlugIn;
 
-class CVFPCPlugin :
+class VFPCPlugin :
 	public EuroScopePlugIn::CPlugIn
 {
 public:
-	CVFPCPlugin();
-	virtual ~CVFPCPlugin();
+	VFPCPlugin();
+	virtual ~VFPCPlugin();
 
 	virtual void getSids();
 

@@ -26,7 +26,7 @@ using namespace std;
 using namespace EuroScopePlugIn;
 
 // Run on Plugin Initialization
-CVFPCPlugin::CVFPCPlugin(void) : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, MY_PLUGIN_NAME, MY_PLUGIN_VERSION, MY_PLUGIN_DEVELOPER, MY_PLUGIN_COPYRIGHT)
+VFPCPlugin::VFPCPlugin(void) : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, MY_PLUGIN_NAME, MY_PLUGIN_VERSION, MY_PLUGIN_DEVELOPER, MY_PLUGIN_COPYRIGHT)
 {
 	string loadingMessage = "Version: ";
 	loadingMessage += MY_PLUGIN_VERSION;
@@ -61,7 +61,7 @@ CVFPCPlugin::CVFPCPlugin(void) : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, MY
 }
 
 // Run on Plugin destruction, Ie. Closing EuroScope or unloading plugin
-CVFPCPlugin::~CVFPCPlugin()
+VFPCPlugin::~VFPCPlugin()
 {
 }
 
@@ -70,7 +70,7 @@ CVFPCPlugin::~CVFPCPlugin()
 */
 
 // Logs a message to a file in the same folder as the DLL
-void CVFPCPlugin::logToFile(const std::string& message)
+void VFPCPlugin::logToFile(const std::string& message)
 {
 	// Get the DLL directory from DllPathFile (already set at startup)
 	std::string logPath = DllPathFile;
@@ -104,7 +104,7 @@ void CVFPCPlugin::logToFile(const std::string& message)
 	}
 }
 
-void CVFPCPlugin::debugMessage(string message)
+void VFPCPlugin::debugMessage(string message)
 {
 	// Display Debug Message if debugMode = true
 	if (debugMode)
@@ -114,19 +114,19 @@ void CVFPCPlugin::debugMessage(string message)
 	}
 }
 
-void CVFPCPlugin::sendMessage(string type, string message)
+void VFPCPlugin::sendMessage(string type, string message)
 {
 	// Show a message
 	DisplayUserMessage("VFPC", type.c_str(), message.c_str(), true, true, true, true, false);
 }
 
-void CVFPCPlugin::sendMessage(string message)
+void VFPCPlugin::sendMessage(string message)
 {
 	DisplayUserMessage("Message", "VFPC", message.c_str(), true, true, true, false, false);
 }
 
 // Parses the Sid.json file
-void CVFPCPlugin::getSids()
+void VFPCPlugin::getSids()
 {
 	stringstream ss;
 	ifstream ifs;
@@ -164,7 +164,7 @@ void CVFPCPlugin::getSids()
 	}
 }
 
-map<string, string> CVFPCPlugin::checkRestrictions(const string& origin, const string& destination, int RFL, const vector<string>& route_tokens)
+map<string, string> VFPCPlugin::checkRestrictions(const string& origin, const string& destination, int RFL, const vector<string>& route_tokens)
 {
 	map<string, string> returnItems;
 
@@ -379,7 +379,7 @@ map<string, string> CVFPCPlugin::checkRestrictions(const string& origin, const s
 }
 
 // Checks if the flight plan is valid according to rules specified.
-map<string, string> CVFPCPlugin::validizeSid(CFlightPlan flightPlan)
+map<string, string> VFPCPlugin::validizeSid(CFlightPlan flightPlan)
 {
 	map<string, string> returnValid;
 
@@ -656,7 +656,7 @@ map<string, string> CVFPCPlugin::validizeSid(CFlightPlan flightPlan)
 }
 
 // Method is called when the function (tag) is present
-void CVFPCPlugin::OnFunctionCall(int FunctionId, const char* ItemString, POINT Pt, RECT Area)
+void VFPCPlugin::OnFunctionCall(int FunctionId, const char* ItemString, POINT Pt, RECT Area)
 {
 	CFlightPlan fp = FlightPlanSelectASEL();
 
@@ -684,7 +684,7 @@ void CVFPCPlugin::OnFunctionCall(int FunctionId, const char* ItemString, POINT P
 }
 
 // Get FlightPlan, and therefore get the first waypoint of the flightplan (ie. SID). Check if the (RFL/1000) corresponds to the SID Min FL and report output "OK" or "FPL"
-void CVFPCPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarget, int ItemCode, int TagData, char sItemString[16], int* pColorCode, COLORREF* pRGB, double* pFontSize)
+void VFPCPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarget, int ItemCode, int TagData, char sItemString[16], int* pColorCode, COLORREF* pRGB, double* pFontSize)
 {
 	*pColorCode = TAG_COLOR_RGB_DEFINED;
 
@@ -712,7 +712,6 @@ void CVFPCPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarget,
 			else
 			{
 				string code;
-				int count;
 				code = getFails(messageBuffer);
 				*pRGB = TAG_RED;
 				strcpy_s(sItemString, 16, code.c_str());
@@ -741,13 +740,13 @@ void CVFPCPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarget,
 }
 
 // Removes aircraft when they disconnect
-void CVFPCPlugin::OnFlightPlanDisconnect(CFlightPlan FlightPlan)
+void VFPCPlugin::OnFlightPlanDisconnect(CFlightPlan FlightPlan)
 {
 	AircraftIgnore.erase(remove(AircraftIgnore.begin(), AircraftIgnore.end(), FlightPlan.GetCallsign()), AircraftIgnore.end());
 }
 
 // Compiled commands, to be used in the command line window
-bool CVFPCPlugin::OnCompileCommand(const char* sCommandLine)
+bool VFPCPlugin::OnCompileCommand(const char* sCommandLine)
 {
 	if (startsWith(".vfpc reload", sCommandLine))
 	{
@@ -790,7 +789,7 @@ bool CVFPCPlugin::OnCompileCommand(const char* sCommandLine)
 }
 
 // Sends to you, which checks were failed and which were passed on the selected aircraft
-void CVFPCPlugin::checkFPDetail()
+void VFPCPlugin::checkFPDetail()
 {
 	map<string, string> messageBuffer = validizeSid(FlightPlanSelectASEL());
 
@@ -845,7 +844,7 @@ void CVFPCPlugin::checkFPDetail()
 	// );
 }
 
-string CVFPCPlugin::getFails(map<string, string> messageBuffer)
+string VFPCPlugin::getFails(map<string, string> messageBuffer)
 {
 	vector<string> fails;
 	debugMessage("Attempting fails");
@@ -881,7 +880,7 @@ string CVFPCPlugin::getFails(map<string, string> messageBuffer)
 	return fails[failures];
 }
 
-void CVFPCPlugin::OnTimer(int Counter)
+void VFPCPlugin::OnTimer(int Counter)
 {
 	blink = !blink;
 
@@ -916,7 +915,7 @@ void CVFPCPlugin::OnTimer(int Counter)
 }
 
 // Checks whether the route contains an airway after the sid
-bool CVFPCPlugin::routeContainsAirways(CFlightPlan flightPlan, const Value& airways)
+bool VFPCPlugin::routeContainsAirways(CFlightPlan flightPlan, const Value& airways)
 {
 	bool routeContainsAirway = false;
 	// all points of the FP are part of the extracted route, they're numbered.
