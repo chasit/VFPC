@@ -1,22 +1,15 @@
-// rStatus.cpp : Defines the initialization routines for the DLL.
-//
-
 #include "stdafx.h"
 #include "EuroScopePlugIn.h"
-#include "analyseFP.hpp"
+#include "analyzeFP.hpp"
 
 VFPCPlugin* gpMyPlugin = NULL;
 
-void __declspec(dllexport) EuroScopePlugInInit(EuroScopePlugIn::CPlugIn** ppPlugInInstance)
+void    __declspec (dllexport)    EuroScopePlugInInit(EuroScopePlugIn::CPlugIn** ppPlugInInstance)
 {
-	// create the instance
 	*ppPlugInInstance = gpMyPlugin = new VFPCPlugin();
 }
 
-//---EuroScopePlugInExit-----------------------------------------------
-
-void __declspec(dllexport) EuroScopePlugInExit(void)
+void    __declspec (dllexport)    EuroScopePlugInExit(void)
 {
-	// delete the instance
 	delete gpMyPlugin;
 }
