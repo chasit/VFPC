@@ -10,7 +10,7 @@ bool debugMode, initialSidLoad;
 
 int disCount;
 
-const int checksAmount = 5;
+const int checksAmount = 6;
 
 ifstream sidDatei;
 char DllPathFile[_MAX_PATH];
@@ -554,6 +554,16 @@ map<string, string> VFPCPlugin::validizeSid(CFlightPlan flightPlan)
 
 		debugMessage(returnValid["CS"] + " passed the destinations checks");
 
+		if (std::find(route.begin(), route.end(), exit_point) != route.end()) {
+			returnValid["ROUTE"] = "Exit point '" + exit_point + "' found in route";
+			passed[3] = true;
+		}
+		else {
+			returnValid["ROUTE"] = "Exit point '" + exit_point + "' NOT found in route";
+		}
+
+		debugMessage(returnValid["CS"] + " passed the EXIT point check");
+
 
 		// Check airway requirement: only perform check if airway_required does not exist or is not set to false
 		// The airway check should start after the mapped exit point (sid_mapping), not always at route[1]
@@ -572,32 +582,51 @@ map<string, string> VFPCPlugin::validizeSid(CFlightPlan flightPlan)
 			debugMessage("Exit IDX is found at: " + to_string(exit_idx) + " for SID: " + sidName + ". SID potentially has different exit point which is: " + exit_point);
 
 			// If not found, fallback to route[1] as before
-			int airway_token_idx = (exit_idx != -1 && exit_idx + 1 < static_cast<int>(route.size())) ? exit_idx + 1 : 1;
-			if (airway_token_idx < static_cast<int>(route.size())) {
-				string airway_token = route[airway_token_idx];
-				bool looks_like_airway = std::any_of(airway_token.begin(), airway_token.end(), ::isalpha) &&
-					std::any_of(airway_token.begin(), airway_token.end(), ::isdigit);
+			// Determine where to start checking after SID exit
+			int start_idx = (exit_idx != -1 && exit_idx + 1 < static_cast<int>(route.size())) ? exit_idx + 1 : 0;
 
-				if (!looks_like_airway)
-				{
-					returnValid["AIRWAYS"] = "Failed airway requirement after exit point, but '" + airway_token + "' does not look like an airway";
-					returnValid["STATUS"] = "Failed";
-				}
-				else
-				{
-					returnValid["AIRWAYS"] = "Passed airway requirement";
-					passed[3] = true;
+			bool valid = true;
+			bool last_was_airway = false;
+
+			for (int i = start_idx; i < static_cast<int>(route.size()); ++i) {
+				const string& token = route[i];
+
+				// Determine if token is an airway
+				bool is_airway = std::any_of(token.begin(), token.end(), ::isalpha) &&
+					std::any_of(token.begin(), token.end(), ::isdigit);
+
+				// Determine if token is a navfix (Waypoint/VOR/NDB)
+				bool is_navfix = token.length() >= 2 &&
+					token.length() <= 5 &&
+					std::all_of(token.begin(), token.end(), ::isalnum) &&
+					std::all_of(token.begin(), token.end(), ::isupper);
+
+				// Determine if token is a STAR (arrival) — for now, treat all navfixes ending with digit as STAR
+				// Essentially we check if the second to last token is a digit
+				bool is_star = is_navfix && std::isdigit(token.back());
+
+				// First token after SID exit
+				if (i == start_idx) {
+					if (!(is_airway || is_star)) {
+						valid = false;
+						returnValid["AIRWAYS"] = "Failed: first post-SID token must be an airway or STAR, found '" + token + "'";
+						returnValid["STATUS"] = "Failed";
+						break;
+					}
+					last_was_airway = is_airway;
+					continue;
 				}
 			}
-			else {
-				returnValid["AIRWAYS"] = "Passed airway requirement (no airway token after exit point)";
-				passed[3] = true;
+
+			if (valid) {
+				returnValid["AIRWAYS"] = "Passed airway requirement";
+				passed[4] = true;
 			}
 		}
 		else
 		{
 			returnValid["AIRWAYS"] = "Passed airway requirement";
-			passed[3] = true;
+			passed[4] = true;
 		}
 
 		debugMessage(returnValid["CS"] + " passed the airways checks");
@@ -623,7 +652,7 @@ map<string, string> VFPCPlugin::validizeSid(CFlightPlan flightPlan)
 		returnValid.insert(restrResults.begin(), restrResults.end());
 
 		if (restrResults["STATUS"].rfind("Passed", 0) == 0) {
-			passed[4] = true;
+			passed[5] = true;
 		}
 
 		bool passedVeri{ false };

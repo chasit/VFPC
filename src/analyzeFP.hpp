@@ -14,7 +14,7 @@
 #include <regex>
 
 #define MY_PLUGIN_NAME      "VFPC"
-#define MY_PLUGIN_VERSION   "4.1.0"
+#define MY_PLUGIN_VERSION   "4.1.1"
 #define MY_PLUGIN_DEVELOPER "Chasit"
 #define MY_PLUGIN_COPYRIGHT "GPL v3"
 #define MY_PLUGIN_VIEW_AVISO  "VATSIM Flight Plan Checker"
