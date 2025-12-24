@@ -488,21 +488,45 @@ map<string, string> VFPCPlugin::validizeSid(CFlightPlan flightPlan)
 
 		if (conditions[i].HasMember("direction") && conditions[i]["direction"].IsString()) {
 			string direction = conditions[i]["direction"].GetString();
-			bool is_even = (requestedFlightLevel % 2 == 0);
 
-			if ((direction == "ODD" && is_even) || (direction == "EVEN" && !is_even))
-			{
-				returnValid["DIRECTION"] = "Failed " + direction;
+			if (requestedFlightLevel > 41 && (requestedFlightLevel - 41) % 2 != 0) {
+				returnValid["DIRECTION"] = "Failed " + direction + " due to invalid non-RVSM flight level: " + std::to_string(requestedFlightLevel * 10);
+				passed[0] = false;
 			}
 			else {
-				returnValid["DIRECTION"] = "Passed " + direction;
-				passed[0] = true;
+				bool is_westbound;
+				// non-RVSM starts from FL430
+				bool is_rvsm = (requestedFlightLevel <= 41);
+
+				if (is_rvsm) {
+					is_westbound = (requestedFlightLevel % 2 == 0);
+				}
+				else {
+					// Can only have odd levels for non-RVSM
+					int steps = (requestedFlightLevel - 41) / 2;
+					is_westbound = (steps % 2 != 0);
+				}
+
+				bool matches = (direction == "EVEN") ? is_westbound : !is_westbound;
+
+				if (!matches) {
+					if (!is_rvsm) {
+						returnValid["DIRECTION"] = "Failed " + direction + " for non-RVSM airspace";
+					}
+					else {
+						returnValid["DIRECTION"] = "Failed " + direction;
+					}
+					passed[0] = false;
+				}
+				else {
+					returnValid["DIRECTION"] = "Passed " + direction;
+					passed[0] = true;
+				}
 			}
 		}
 		else {
 			returnValid["DIRECTION"] = "No direction restraint";
 			passed[0] = true;
-
 		}
 
 		debugMessage(returnValid["CS"] + " passed the destination checks");
@@ -601,7 +625,7 @@ map<string, string> VFPCPlugin::validizeSid(CFlightPlan flightPlan)
 					std::all_of(token.begin(), token.end(), ::isalnum) &&
 					std::all_of(token.begin(), token.end(), ::isupper);
 
-				// Determine if token is a STAR (arrival) — for now, treat all navfixes ending with digit as STAR
+				// Determine if token is a STAR (arrival) ï¿½ for now, treat all navfixes ending with digit as STAR
 				// Essentially we check if the second to last token is a digit
 				bool is_star = is_navfix && std::isdigit(token.back());
 
