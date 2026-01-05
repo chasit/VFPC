@@ -16,7 +16,9 @@
         "ROVEN": "LOPIK",
         "LARAS": "WOODY",
         "KUDAD": "WOODY",
-        "SOMEL": "ABNED"
+        "SOMEL": "ABNED",
+        "DIFTIDR": "IDRID",
+        "DIFTBER": "BERGI"
    },
     "sid_details": [
         {
@@ -33,6 +35,11 @@
                     }
                 ],
                 "BERGI": [
+                    {
+                        "direction": "EVEN"
+                    }
+                ],
+                "DIFTBER": [
                     {
                         "direction": "EVEN"
                     }
@@ -61,6 +68,11 @@
                     {
                         "direction": "EVEN"
                     }
+                ],  
+                "DIFTIDR": [
+                    {
+                        "direction": "EVEN"
+                    }
                 ],
                 "IVLUT": [
                     {
@@ -83,6 +95,11 @@
                     }
                 ],
                 "NOPSU": [
+                    {
+                        "direction": "ODD"
+                    }
+                ],  
+                "TORGA": [
                     {
                         "direction": "ODD"
                     }
