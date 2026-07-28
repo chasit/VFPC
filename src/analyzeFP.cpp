@@ -66,7 +66,7 @@ VFPCPlugin::VFPCPlugin(void) : CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, MY_P
 		logPath = "";
 	logPath += "VFPC.log";
 	std::remove(logPath.c_str());
-	logToFile("Loaded the configuration!");
+	debugMessage("Loaded the configuration!");
 }
 
 // Run on Plugin destruction, Ie. Closing EuroScope or unloading plugin
