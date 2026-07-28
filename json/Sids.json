@@ -19,7 +19,7 @@
         "SOMEL": "ABNED",
         "DIFTIDR": "IDRID",
         "DIFTBER": "BERGI"
-   },
+    },
     "sid_details": [
         {
             "icao": "EHAM",
@@ -68,7 +68,7 @@
                     {
                         "direction": "EVEN"
                     }
-                ],  
+                ],
                 "DIFTIDR": [
                     {
                         "direction": "EVEN"
@@ -98,7 +98,7 @@
                     {
                         "direction": "ODD"
                     }
-                ],  
+                ],
                 "TORGA": [
                     {
                         "direction": "ODD"
@@ -318,7 +318,6 @@
                     {
                         "direction": "ODD",
                         "airway_required": false
-
                     }
                 ],
                 "PAM": [
@@ -329,7 +328,7 @@
                 "ROLDU": [
                     {
                         "direction": "EVEN",
-                         "destinations": [
+                        "destinations": [
                             "EHLE"
                         ],
                         "airway_required": false
@@ -364,7 +363,7 @@
                             "EDDL",
                             "EDLN",
                             "EDLV"
-                        ]                
+                        ]
                     }
                 ],
                 "TEMLU": [
@@ -444,21 +443,6 @@
             "forbidden_fls": 250
         },
         {
-            "id": "ED4223",
-            "from": [
-                "EHAM"
-            ],
-            "routes": [
-                {
-                    "destinations": [
-                        "EDDM "
-                    ],
-                    "fl_capping": 355
-                }
-            ],
-            "applicability": "AIRAC APR – FIRST AIRAC OCT"
-        },
-        {
             "id": "EBYX4002",
             "from": [
                 "EHAM"
@@ -477,87 +461,6 @@
             "applicability": "H24"
         },
         {
-            "id": "EBYX4003",
-            "from": [
-                "EHAM",
-                "EHRD"
-            ],
-            "routes": [
-                {
-                    "condition": "",
-                    "destinations": [
-                        "LFOH",
-                        "LFRG"
-                    ],
-                    "fl_capping": 245
-                }
-            ],
-            "applicability": "H24"
-        },
-        {
-            "id": "ED4003",
-            "from": [
-                "EHBK",
-                "EHBD"
-            ],
-            "routes": [
-                {
-                    "condition": "",
-                    "destinations": [
-                        "EDDS",
-                        "EDFM",
-                        "EDFV",
-                        "EDRY",
-                        "EDSB",
-                        "EDTM",
-                        "EDTY"
-                    ],
-                    "fl_capping": 245
-                }
-            ],
-            "applicability": "H24"
-        },
-        {
-            "id": "ED4094",
-            "from": [
-                "EHBK",
-                "EHEH",
-                "ELLX"
-            ],
-            "routes": [
-                {
-                    "condition": "AIRAC APR – FIRST AIRAC OCT",
-                    "destinations": [
-                        "EDDM",
-                        "EDM*",
-                        "EDNY",
-                        "EDJA"
-                    ],
-                    "fl_capping": 355
-                }
-            ],
-            "applicability": "H24"
-        },
-        {
-            "id": "ED4128",
-            "from": [
-                "EHBK",
-                "EHEH",
-                "ELLX"
-            ],
-            "routes": [
-                {
-                    "condition": "VIA EDUUUTAC, EDUUUTAW; AIRAC APR – FIRST AIRAC OCT",
-                    "destinations": [
-                        "LKPR",
-                        "LOWW"
-                    ],
-                    "fl_capping": 355
-                }
-            ],
-            "applicability": "H24"
-        },
-        {
             "id": "EDYX4026",
             "from": [
                 "EHAM"
@@ -570,72 +473,6 @@
                         "EDDW"
                     ],
                     "fl_capping": 245
-                }
-            ],
-            "applicability": "H24"
-        },
-        {
-            "id": "EDYX4043",
-            "from": [
-                "EHEH"
-            ],
-            "routes": [
-                {
-                    "condition": "VIA EDYYUTA",
-                    "destinations": [
-                        "EDDS",
-                        "EDSB"
-                    ],
-                    "fl_capping": 315
-                },
-                {
-                    "condition": "NOT VIA EDYYUTA",
-                    "destinations": [
-                        "EDDS",
-                        "EDSB"
-                    ],
-                    "fl_capping": 245
-                }
-            ],
-            "applicability": "H24"
-        },
-        {
-            "id": "EDYX4044",
-            "from": [
-                "EHEH"
-            ],
-            "routes": [
-                {
-                    "condition": "",
-                    "destinations": [
-                        "EDFM",
-                        "EDFV",
-                        "EDRY",
-                        "EDTM",
-                        "EDTY"
-                    ],
-                    "fl_capping": 245
-                }
-            ],
-            "applicability": "H24"
-        },
-        {
-            "id": "EG4046",
-            "from": [
-                "EHAM",
-                "EHHV",
-                "EHKD",
-                "EHLE",
-                "EHRD",
-                "EHTX"
-            ],
-            "routes": [
-                {
-                    "condition": "",
-                    "destinations": [
-                        "EGMD"
-                    ],
-                    "fl_capping": 215
                 }
             ],
             "applicability": "H24"
@@ -680,10 +517,7 @@
                 {
                     "condition": "",
                     "destinations": [
-                        "EGKB",
-                        "EGLC",
-                        "EGMC",
-                        "EGTO"
+                        "EGLC"
                     ],
                     "fl_capping": 205
                 }
@@ -700,27 +534,12 @@
                 {
                     "condition": "",
                     "destinations": [
-                        "EGHL",
-                        "EGLF",
-                        "EGLK",
-                        "EGTD",
-                        "EGTF",
-                        "EGVO",
                         "EGGW",
-                        "EGKB",
                         "EGKK",
                         "EGLC",
                         "EGLL",
-                        "EGMC",
-                        "EGSC",
                         "EGSS",
-                        "EGTO",
-                        "EGWU",
-                        "EGBJ",
-                        "EGHH",
-                        "EGHI",
-                        "EGVA",
-                        "EGVN"
+                        "EGMC"
                     ],
                     "fl_capping": 245
                 }
@@ -732,23 +551,15 @@
             "from": [
                 "EHBK",
                 "EHEH",
-                "EHHV",
-                "EHKD",
                 "EHLE",
-                "EHRD",
-                "EHTX",
-                "EHWO"
+                "EHRD"
             ],
             "routes": [
                 {
                     "condition": "",
                     "destinations": [
-                        "LFPB",
                         "LFPG",
-                        "LFPN",
-                        "LFPO",
-                        "LFPT",
-                        "LFPV"
+                        "LFPO"
                     ],
                     "fl_capping": 245
                 }
@@ -775,11 +586,8 @@
             "id": "EH4004",
             "from": [
                 "EHAM",
-                "EHHV",
-                "EHKD",
                 "EHLE",
-                "EHRD",
-                "EHTX"
+                "EHRD"
             ],
             "routes": [
                 {
@@ -788,18 +596,10 @@
                         "EDDG",
                         "EDDK",
                         "EDDL",
-                        "EDGS",
-                        "EDKB",
-                        "EDKL",
-                        "EDLA",
-                        "EDLE",
-                        "EDLM",
-                        "EDLN",
                         "EDLP",
                         "EDLV",
                         "EDLW",
                         "ETNG",
-                        "ETNN",
                         "EDFH"
                     ],
                     "fl_capping": 235
@@ -836,12 +636,8 @@
                 {
                     "condition": "",
                     "destinations": [
-                        "LFPB",
                         "LFPG",
-                        "LFPN",
-                        "LFPO",
-                        "LFPT",
-                        "LFPV"
+                        "LFPO"
                     ],
                     "fl_capping": 305
                 }
@@ -895,7 +691,7 @@
             ],
             "routes": [
                 {
-                    "condition": "WITH RFL NOT ABV FL055",
+                    "condition": "",
                     "destinations": [
                         "EBAW"
                     ],
@@ -911,27 +707,11 @@
             ],
             "routes": [
                 {
-                    "condition": "via COA with-rfl-not-above FL055",
+                    "condition": "VIA COA",
                     "destinations": [
                         "EBOS"
                     ],
                     "fl_capping": 55
-                }
-            ],
-            "applicability": "H24"
-        },
-        {
-            "id": "LF4137",
-            "from": [
-                "EHAM"
-            ],
-            "routes": [
-                {
-                    "condition": "",
-                    "destinations": [
-                        "LFLC"
-                    ],
-                    "fl_capping": 315
                 }
             ],
             "applicability": "H24"
@@ -947,130 +727,9 @@
                 {
                     "condition": "VIA LESDO",
                     "destinations": [
-                        "LFHJ",
-                        "LFHS",
-                        "LFHV",
-                        "LFHW",
-                        "LFKL",
-                        "LFKY",
-                        "LFLG",
-                        "LFLL",
-                        "LFLM",
-                        "LFLS",
-                        "LFLU",
-                        "LFLY",
-                        "LFMH",
-                        "LFXA"
+                        "LFLL"
                     ],
                     "fl_capping": 295
-                }
-            ],
-            "applicability": "AIRAC APR – LAST AIRAC OCT, H24"
-        },
-        {
-            "id": "LF4387",
-            "from": [
-                "EHBK"
-            ],
-            "routes": [
-                {
-                    "condition": "VIA LFRRCTA",
-                    "destinations": [
-                        "LFRFRIR"
-                    ],
-                    "fl_capping": 345
-                }
-            ],
-            "applicability": "H24"
-        },
-        {
-            "id": "LF4437",
-            "from": [
-                "EHAM",
-                "EHRD",
-                "EHEH"
-            ],
-            "routes": [
-                {
-                    "condition": "VIA LFBP814",
-                    "destinations": [
-                        "LESO",
-                        "LEBB"
-                    ],
-                    "fl_capping": 355
-                }
-            ],
-            "applicability": "AIRAC APR – FIRST AIRAC OCT 10:20–19:15 (09:20–18:15)"
-        },
-        {
-            "id": "LF4445",
-            "from": [
-                "EHAM"
-            ],
-            "routes": [
-                {
-                    "condition": "VIA LFBP814",
-                    "destinations": [
-                        "LESO",
-                        "LEBB"
-                    ],
-                    "fl_capping": 355
-                }
-            ],
-            "applicability": "AIRAC APR – FIRST AIRAC OCT 06:20–08:45 (05:20–07:45)"
-        },
-        {
-            "id": "LFYX4000",
-            "from": [
-                "EHEH"
-            ],
-            "routes": [
-                {
-                    "condition": "VIA LFEECCTA",
-                    "destinations": [
-                        "LFHJ",
-                        "LFHS",
-                        "LFHV",
-                        "LFHW",
-                        "LFKL"
-                    ],
-                    "fl_capping": 335
-                }
-            ],
-            "applicability": "H24"
-        },
-        {
-            "id": "NM4015",
-            "from": [
-                "EHAM",
-                "EHRD"
-            ],
-            "routes": [
-                {
-                    "condition": "",
-                    "destinations": [
-                        "LFP*",
-                        "LFOB",
-                        "LFOK"
-                    ],
-                    "fl_capping": 245
-                }
-            ],
-            "applicability": "H24"
-        },
-        {
-            "id": "YX4007",
-            "from": [
-                "EHAM"
-            ],
-            "routes": [
-                {
-                    "condition": "",
-                    "destinations": [
-                        "LFSB",
-                        "LSGG"
-                    ],
-                    "fl_capping": 355
                 }
             ],
             "applicability": "H24"
@@ -1084,12 +743,12 @@
             ],
             "routes": [
                 {
-                    "condition": "via EBURUIR",
+                    "condition": "VIA EBURUIR",
                     "destinations": [
                         "ELLX",
                         "LFJL",
                         "LFSF",
-                        "LPST",
+                        "LFST",
                         "EDDR",
                         "EDFB",
                         "EDFE",
@@ -1103,151 +762,6 @@
                 }
             ],
             "applicability": "H24"
-        },
-        {
-            "id": "YX4039",
-            "from": [
-                "EHBK"
-            ],
-            "routes": [
-                {
-                    "condition": "",
-                    "destinations": [
-                        "EGSH",
-                        "EGUL",
-                        "EGUN",
-                        "EGYM",
-                        "EGGW",
-                        "EGKB",
-                        "EGKK",
-                        "EGLC",
-                        "EGMC",
-                        "EGNE",
-                        "EGSC",
-                        "EGSS",
-                        "EGTC",
-                        "EGTO"
-                    ],
-                    "fl_capping": 285
-                }
-            ],
-            "applicability": "06:00–00:30 (05:00–23:59)"
-        },
-        {
-            "id": "YX4044",
-            "from": [
-                "EHBK",
-                "EHEH"
-            ],
-            "routes": [
-                {
-                    "condition": "",
-                    "destinations": [
-                        "EDDB"
-                    ],
-                    "fl_capping": 355
-                }
-            ],
-            "applicability": "05:00–21:00 (04:00–20:00)"
-        },
-        {
-            "id": "YX4045",
-            "from": [
-                "EHAM"
-            ],
-            "routes": [
-                {
-                    "condition": "",
-                    "destinations": [
-                        "EDDS",
-                        "EDDN"
-                    ],
-                    "fl_capping": 355
-                }
-            ],
-            "applicability": "05:00–21:00 (04:00–20:00)"
-        },
-        {
-            "id": "YX4050",
-            "from": [
-                "EHBK",
-                "EHEH"
-            ],
-            "routes": [
-                {
-                    "condition": "",
-                    "destinations": [
-                        "EDDH",
-                        "EDHI",
-                        "EDHL"
-                    ],
-                    "fl_capping": 355
-                }
-            ],
-            "applicability": "05:00–21:00 (04:00–20:00)"
-        },
-        {
-            "id": "YX4054",
-            "from": [
-                "EHBK",
-                "EHWO"
-            ],
-            "routes": [
-                {
-                    "condition": "",
-                    "destinations": [
-                        "LFP*",
-                        "LFOB",
-                        "LFOK"
-                    ],
-                    "fl_capping": 245
-                }
-            ],
-            "applicability": "H24"
-        },
-        {
-            "id": "YX4060",
-            "from": [
-                "EHAM",
-                "EHHV",
-                "EHKD",
-                "EHLE",
-                "EHRD",
-                "EHTX"
-            ],
-            "routes": [
-                {
-                    "condition": "",
-                    "destinations": [
-                        "EDDB"
-                    ],
-                    "fl_capping": 375
-                }
-            ],
-            "applicability": "05:00–21:00 (04:00–20:00)"
-        },
-        {
-            "id": "YX4062",
-            "from": [
-                "EHAM",
-                "EHHV",
-                "EHKD",
-                "EHLE",
-                "EHRD",
-                "EHTX"
-            ],
-            "routes": [
-                {
-                    "condition": "",
-                    "destinations": [
-                        "EDDF",
-                        "EDFE",
-                        "ETOU"
-                    ],
-                    "fl_capping": 355
-                }
-            ],
-            "applicability": "05:00–21:00 (04:00–20:00)"
         }
     ]
 }
